@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Page not found · StudyFlash{% endblock %}
+{% block main %}
+  <div class="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
+    <h1 class="text-6xl font-bold text-brand-purple">404</h1>
+    <p class="mt-4 text-lg text-slate-600">We could not find that page.</p>
+    <a href="{{ url_for('main.dashboard') if session.get('user_id') else url_for('auth.login') }}" class="mt-8 rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white">Go home</a>
+  </div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body_class %}bg-black text-white{% endblock %}
+{% from "components/sidebar_dark.html" import sidebar_dark %}
+{% block main %}
+  <div class="flex min-h-screen bg-black">
+    {{ sidebar_dark(active|default('analytics')) }}
+    <div class="flex min-h-screen flex-1 flex-col border-l border-slate-800">
+      <header class="flex items-center justify-end px-8 py-4">
+        <div class="h-9 w-9 rounded-full bg-white/20"></div>
+      </header>
+      <main class="flex-1 overflow-auto px-8 pb-10">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+{% endblock %}

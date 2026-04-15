@@ -1,0 +1,42 @@
+{% extends "layout_app.html" %}
+{% block title %}Profile · StudyFlash{% endblock %}
+{% set active = 'profile' %}
+{% block content %}
+  <div class="flex flex-col gap-6 md:flex-row md:items-start">
+    <div class="h-28 w-28 shrink-0 rounded-full bg-slate-200"></div>
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900">{{ stats.full_name }}</h1>
+      <p class="mt-1 text-lg font-medium text-brand-purple">{{ stats.title }}</p>
+    </div>
+  </div>
+  <div class="mt-10 grid gap-4 md:grid-cols-3">
+    <div class="rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 p-6 text-center shadow-lg">
+      <div class="text-3xl font-bold text-slate-900">{{ stats.cards_studied }}</div>
+      <div class="text-sm font-medium text-indigo-100">Cards study</div>
+    </div>
+    <div class="rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 p-6 text-center shadow-lg">
+      <div class="text-3xl font-bold text-slate-900">{{ stats.streak_days }} Days</div>
+      <div class="text-sm font-medium text-indigo-100">Study Streak</div>
+    </div>
+    <div class="rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 p-6 text-center shadow-lg">
+      <div class="text-3xl font-bold text-slate-900">{{ stats.achievements }}</div>
+      <div class="text-sm font-medium text-indigo-100">Achievement</div>
+    </div>
+  </div>
+  <h2 class="mt-12 text-xl font-bold text-slate-900">My Study Set</h2>
+  <div class="mt-4 space-y-3">
+    {% for s in sets %}
+      <a href="{{ url_for('sets.review_modes', set_id=s.id) }}" class="block rounded-2xl bg-gradient-to-r from-violet-100 to-purple-200 px-6 py-4 shadow-sm transition hover:opacity-95">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl text-brand-purple">&#128218;</span>
+          <div>
+            <div class="font-bold text-slate-900">{{ s.title }}</div>
+            <div class="text-sm font-medium text-blue-600">{{ card_counts.get(s.id, 0) }} terms</div>
+          </div>
+        </div>
+      </a>
+    {% else %}
+      <p class="text-slate-600">No sets yet.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

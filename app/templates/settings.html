@@ -1,0 +1,44 @@
+{% extends "layout_dark.html" %}
+{% block title %}Settings · StudyFlash{% endblock %}
+{% set active = 'settings' %}
+{% block content %}
+  <h1 class="text-2xl font-bold text-brand-purple">Settings</h1>
+  <form method="post" class="mt-8 space-y-6">
+    <div class="rounded-2xl bg-white p-6 text-slate-900 shadow-lg">
+      <h2 class="text-lg font-bold">Account</h2>
+      <label class="mt-4 block text-sm font-semibold">Username</label>
+      <input name="username" value="{{ user.full_name }}" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm" />
+      <label class="mt-4 block text-sm font-semibold">Email</label>
+      <input name="email" type="email" value="{{ user.email }}" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm" />
+      <label class="mt-4 block text-sm font-semibold">Headline</label>
+      <input name="title" value="{{ user.title or '' }}" placeholder="e.g. Medical student" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm" />
+    </div>
+    <div class="rounded-2xl bg-white p-6 text-slate-900 shadow-lg">
+      <h2 class="text-lg font-bold">Notifications</h2>
+      <label class="mt-4 flex items-center gap-2 text-sm">
+        <input type="checkbox" name="notify_study_reminder" class="rounded" {% if user.notify_study_reminder %}checked{% endif %} />
+        Study reminder
+      </label>
+      <label class="mt-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" name="notify_daily_goal" class="rounded" {% if user.notify_daily_goal %}checked{% endif %} />
+        Daily goal notifications
+      </label>
+      <label class="mt-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" name="notify_friend" class="rounded" {% if user.notify_friend %}checked{% endif %} />
+        Friend activities
+      </label>
+      <label class="mt-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" name="notify_new_sets" class="rounded" {% if user.notify_new_sets %}checked{% endif %} />
+        New study set updates
+      </label>
+    </div>
+    <div class="rounded-2xl bg-white p-6 text-slate-900 shadow-lg">
+      <h2 class="text-lg font-bold">Language</h2>
+      <select name="language" class="mt-4 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm">
+        <option value="English" {% if user.language == 'English' %}selected{% endif %}>English</option>
+        <option value="中文" {% if user.language == '中文' %}selected{% endif %}>中文</option>
+      </select>
+    </div>
+    <button type="submit" class="rounded-xl bg-brand-purple px-8 py-3 font-semibold text-white hover:opacity-95">Save</button>
+  </form>
+{% endblock %}

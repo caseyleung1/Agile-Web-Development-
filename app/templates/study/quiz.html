@@ -1,0 +1,243 @@
+{% extends "layout_app.html" %}
+{% block title %}Quiz · {{ study_set.title }}{% endblock %}
+{% set active = 'sets' %}
+{% block content %}
+  <a href="{{ url_for('sets.review_modes', set_id=study_set.id) }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-blue-500 px-4 py-2 text-sm font-medium text-blue-600">&larr; Back to Dashboard</a>
+  <div class="mx-auto max-w-2xl text-center">
+    <h1 class="mt-6 text-3xl font-bold text-brand-purple">{{ study_set.title }}</h1>
+    <div class="mt-2 flex items-center justify-center gap-4">
+      <p id="quiz-progress" class="font-semibold text-slate-800">Question 1 of {{ cards|length }}</p>
+      {% if timed %}
+        <span id="quiz-timer" class="flex items-center gap-1 rounded-full bg-violet-100 px-3 py-1 text-sm font-bold text-brand-purple">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="timer-val">{{ timed_seconds }}s</span>
+        </span>
+      {% endif %}
+    </div>
+    <div id="quiz-question-view" class="mt-8">
+      <div class="rounded-2xl border-2 border-brand-purple/50 bg-white p-8 text-left shadow-lg">
+        <p id="quiz-qtext" class="text-lg font-medium text-slate-900"></p>
+        <div id="quiz-options" class="mt-6 space-y-3"></div>
+      </div>
+      <p id="quiz-scoreline" class="mt-4 text-sm font-medium text-slate-600 {% if not timed %}hidden{% endif %}">Score: <span id="score-num">0</span>/{{ cards|length }}</p>
+      <div class="mt-8 flex items-center justify-between">
+        <div id="quiz-dots" class="flex gap-2"></div>
+        <button type="button" id="quiz-next" class="rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white">Next &gt;</button>
+      </div>
+    </div>
+    <div id="quiz-result-view" class="mt-8 hidden text-left">
+      <h2 class="text-center text-3xl font-bold text-brand-purple">Quiz Result</h2>
+      <div id="result-summary" class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4"></div>
+      <div id="result-table-wrap" class="mt-8 overflow-x-auto rounded-2xl border-2 border-brand-purple/40 p-4"></div>
+      <div class="mt-8 flex justify-center gap-4">
+        <a href="{{ url_for('sets.quiz', set_id=study_set.id) }}{% if timed %}?timed=1{% endif %}" class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white">Play Again</a>
+        <a href="{{ url_for('sets.my_sets') }}" class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white">Choose Another Set</a>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="quiz-data">{{ cards|tojson }}</script>
+  <script type="application/json" id="quiz-meta">{{ {'timed': timed, 'timed_seconds': timed_seconds, 'set_id': study_set.id }|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+  <script>
+    (function () {
+      const cards = JSON.parse(document.getElementById("quiz-data").textContent);
+      const meta = JSON.parse(document.getElementById("quiz-meta").textContent);
+      const timed = meta.timed;
+      let timeLeft = meta.timed_seconds || 60;
+      let idx = 0;
+      let selected = null;
+      let answered = false;
+      const results = [];
+      let correctN = 0,
+        wrongN = 0,
+        missedN = 0;
+
+      const elQ = document.getElementById("quiz-qtext");
+      const elOpts = document.getElementById("quiz-options");
+      const prog = document.getElementById("quiz-progress");
+      const dots = document.getElementById("quiz-dots");
+      const btnNext = document.getElementById("quiz-next");
+      const qView = document.getElementById("quiz-question-view");
+      const rView = document.getElementById("quiz-result-view");
+      const scoreNum = document.getElementById("score-num");
+
+      function shuffleOptions(c) {
+        const opts = c.options.map((t, i) => ({ t, i }));
+        for (let i = opts.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [opts[i], opts[j]] = [opts[j], opts[i]];
+        }
+        return opts;
+      }
+
+      let currentShuffled = [];
+
+      function renderQuestion() {
+        const c = cards[idx];
+        answered = false;
+        selected = null;
+        elQ.textContent = c.term;
+        currentShuffled = shuffleOptions(c);
+        elOpts.innerHTML = "";
+        currentShuffled.forEach((o, j) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className =
+            "w-full rounded-xl border-2 border-brand-purple/40 px-4 py-3 text-left text-sm font-medium text-slate-800 hover:bg-violet-50";
+          b.textContent = o.t;
+          b.dataset.orig = String(o.i);
+          b.onclick = () => pickOption(b, o.i);
+          elOpts.appendChild(b);
+        });
+        prog.textContent = "Question " + (idx + 1) + " of " + cards.length;
+        renderDots();
+        btnNext.textContent = idx === cards.length - 1 ? (timed ? "View Result" : "View Result") : "Next >";
+        btnNext.disabled = true;
+      }
+
+      function pickOption(btn, origIdx) {
+        if (answered) return;
+        answered = true;
+        const c = cards[idx];
+        const isCorrect = origIdx === c.correct_index;
+        if (isCorrect) {
+          correctN++;
+          btn.classList.add("border-emerald-500", "bg-emerald-50");
+        } else {
+          wrongN++;
+          btn.classList.add("border-red-500", "bg-red-50");
+          elOpts.querySelectorAll("button").forEach((x) => {
+            if (parseInt(x.dataset.orig, 10) === c.correct_index) {
+              x.classList.add("border-emerald-500", "bg-emerald-50");
+            }
+          });
+        }
+        results.push({
+          ok: isCorrect,
+          missed: false,
+          q: c.term,
+          yours: c.options[origIdx],
+          correct: c.options[c.correct_index],
+        });
+        if (timed && scoreNum) scoreNum.textContent = String(correctN);
+        btnNext.disabled = false;
+      }
+
+      function renderDots() {
+        dots.innerHTML = "";
+        cards.forEach((_, i) => {
+          const b = document.createElement("span");
+          b.textContent = String(i + 1);
+          b.className =
+            "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold " +
+            (i === idx ? "bg-teal-500 text-white" : "border border-slate-300 text-slate-600");
+          dots.appendChild(b);
+        });
+      }
+
+      let quizFinished = false;
+
+      function finish() {
+        if (quizFinished) return;
+        quizFinished = true;
+        qView.classList.add("hidden");
+        rView.classList.remove("hidden");
+        const total = cards.length;
+        const pct = Math.round((100 * correctN) / total);
+        const sum = document.getElementById("result-summary");
+        if (timed) {
+          missedN = Math.max(0, total - correctN - wrongN);
+          sum.innerHTML = `
+          <div class="rounded-xl bg-violet-100 p-4 text-center"><div class="text-2xl font-bold text-brand-purple">${pct}% Score</div></div>
+          <div class="rounded-xl bg-emerald-100 p-4 text-center"><div class="text-2xl font-bold text-emerald-700">${correctN} Correct</div></div>
+          <div class="rounded-xl bg-red-100 p-4 text-center"><div class="text-2xl font-bold text-red-700">${wrongN} Incorrect</div></div>
+          <div class="rounded-xl bg-sky-100 p-4 text-center"><div class="text-2xl font-bold text-sky-700">${missedN} Missed</div></div>`;
+        } else {
+          sum.innerHTML = `
+          <div class="rounded-xl bg-violet-100 p-4 text-center"><div class="text-2xl font-bold text-brand-purple">${pct}% Score</div></div>
+          <div class="rounded-xl bg-emerald-100 p-4 text-center"><div class="text-2xl font-bold text-emerald-700">${correctN} Correct</div></div>
+          <div class="rounded-xl bg-red-100 p-4 text-center"><div class="text-2xl font-bold text-red-700">${wrongN} Incorrect</div></div>`;
+        }
+        let rows = "";
+        results.forEach((r) => {
+          const st = r.missed ? "Missed" : r.ok ? "Correct" : "Incorrect";
+          const stClass = r.missed ? "bg-sky-50 text-sky-900" : r.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800";
+          const yours = typeof r.yours === "string" ? r.yours : String(r.yours || "");
+          rows += `<tr class="${stClass}"><td class="p-2 font-medium">${st}</td><td class="p-2">${escapeHtml(r.q)}</td><td class="p-2">${escapeHtml(yours)}</td><td class="p-2">${escapeHtml(r.correct)}</td></tr>`;
+        });
+        document.getElementById("result-table-wrap").innerHTML = `
+          <table class="w-full text-sm"><thead><tr class="border-b"><th class="p-2 text-left">Status</th><th class="p-2 text-left">Question</th><th class="p-2 text-left">Your Answer</th><th class="p-2 text-left">Correct Answer</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+        fetch("/api/quiz-attempt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            study_set_id: meta.set_id,
+            mode: timed ? "timed" : "quiz",
+            score_percent: pct,
+            correct_count: correctN,
+            incorrect_count: wrongN,
+            missed_count: timed ? missedN : 0,
+            details: results,
+          }),
+        });
+      }
+
+      function escapeHtml(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      btnNext.onclick = () => {
+        if (quizFinished) return;
+        if (!answered) {
+          if (!timed) return;
+          missedN++;
+          results.push({
+            ok: false,
+            missed: true,
+            q: cards[idx].term,
+            yours: "Unanswered",
+            correct: cards[idx].options[cards[idx].correct_index],
+          });
+        }
+        if (idx < cards.length - 1) {
+          idx++;
+          renderQuestion();
+        } else {
+          finish();
+        }
+      };
+
+      if (timed) {
+        setInterval(() => {
+          if (quizFinished || timeLeft <= 0) return;
+          timeLeft--;
+          const tv = document.getElementById("timer-val");
+          if (tv) tv.textContent = timeLeft + "s";
+          if (timeLeft <= 0) {
+            for (let j = idx; j < cards.length; j++) {
+              const c = cards[j];
+              const already = results.some((r) => r.q === c.term);
+              if (!already) {
+                missedN++;
+                results.push({
+                  ok: false,
+                  missed: true,
+                  q: c.term,
+                  yours: "Unanswered",
+                  correct: c.options[c.correct_index],
+                });
+              }
+            }
+            finish();
+          }
+        }, 1000);
+      }
+
+      renderQuestion();
+    })();
+  </script>
+{% endblock %}

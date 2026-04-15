@@ -1,0 +1,82 @@
+{% extends "layout_app.html" %}
+{% block title %}Dashboard · StudyFlash{% endblock %}
+{% set active = 'dashboard' %}
+{% block content %}
+  <h1 class="text-3xl font-bold text-brand-purple">Welcome back, {{ current_user.full_name if current_user else 'Student' }}!!</h1>
+  <div class="mt-8 grid gap-6 lg:grid-cols-3">
+    <a href="{{ url_for('sets.my_sets') }}" class="rounded-2xl bg-gradient-to-br from-brand-purple to-purple-700 p-6 text-white shadow-lg transition hover:opacity-95">
+      <div class="flex items-center gap-3">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+        </div>
+        <div>
+          <div class="text-lg font-bold">Flip Mode</div>
+          <div class="text-sm text-white/80">Quick card flipping practice</div>
+        </div>
+      </div>
+    </a>
+    <a href="{{ url_for('sets.my_sets') }}" class="rounded-2xl bg-gradient-to-br from-brand-orange to-orange-600 p-6 text-white shadow-lg transition hover:opacity-95">
+      <div class="flex items-center gap-3">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <div class="text-lg font-bold">Quiz Mode</div>
+          <div class="text-sm text-white/80">Test your knowledge</div>
+        </div>
+      </div>
+    </a>
+    <a href="{{ url_for('sets.my_sets') }}" class="rounded-2xl bg-gradient-to-br from-brand-sky to-sky-600 p-6 text-white shadow-lg transition hover:opacity-95">
+      <div class="flex items-center gap-3">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+          <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <div class="text-lg font-bold">Time Game</div>
+          <div class="text-sm text-white/80">Beat the clock</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="mt-10 grid gap-8 lg:grid-cols-3">
+    <div class="lg:col-span-2">
+      <h2 class="text-lg font-bold text-brand-purple">Recent Study Sets</h2>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        {% for s in recent_sets %}
+          <div class="overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-100">
+            <div class="h-2 bg-gradient-to-r from-brand-purple via-fuchsia-500 to-violet-600"></div>
+            <div class="p-4">
+              <div class="flex items-start gap-2">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-purple/10 text-brand-purple">
+                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <div>
+                  <a href="{{ url_for('sets.review_modes', set_id=s.id) }}" class="font-semibold text-slate-900 hover:text-brand-purple">{{ s.title }}</a>
+                  <p class="text-sm text-slate-500">{{ s.cards.count() }} cards</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-slate-500">No sets yet. <a href="{{ url_for('sets.create') }}" class="font-semibold text-brand-purple">Create one</a></p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="rounded-2xl bg-white p-5 shadow-md ring-1 ring-slate-100">
+      <h2 class="text-lg font-bold text-brand-purple">What's new</h2>
+      <ul class="mt-4 space-y-4 text-sm text-slate-600">
+        <li>
+          <div class="font-medium text-slate-900">AI Study Assistant</div>
+          <p class="mt-1">Generate flashcards automatically from your notes.</p>
+          <span class="text-xs text-slate-400">2 days ago</span>
+        </li>
+        <li>
+          <div class="font-medium text-slate-900">Trending this week</div>
+          <p class="mt-1">AP Biology 2026 — 10K+ users</p>
+          <span class="text-xs text-slate-400">Updated today</span>
+        </li>
+      </ul>
+      <button type="button" class="mt-6 w-full rounded-xl bg-brand-purpledeep py-2 text-sm font-semibold text-white">View all updates</button>
+    </div>
+  </div>
+{% endblock %}

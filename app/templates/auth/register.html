@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Create account · StudyFlash{% endblock %}
+{% block main %}
+  <div class="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-12">
+    <div class="w-full max-w-md">
+      <h1 class="text-center text-3xl font-bold text-slate-900">Create your account</h1>
+      <p class="mt-2 text-center text-slate-600">Start your learning journey today</p>
+      {% if error %}
+        <p class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
+      {% endif %}
+      <form method="post" class="mt-8 space-y-5">
+        <div>
+          <label class="text-sm font-semibold text-slate-900">Full name</label>
+          <input name="full_name" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-slate-900">Email Address</label>
+          <input name="email" type="email" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-slate-900">Password</label>
+          <input name="password" type="password" required minlength="8" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-slate-900">Confirm Password</label>
+          <input name="confirm_password" type="password" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+        </div>
+        <label class="flex items-start gap-2 text-sm text-slate-700">
+          <input type="checkbox" name="terms" class="mt-1 rounded border-slate-300" />
+          <span>I agree to the <a href="#" class="text-blue-600">Terms and Conditions</a> and <a href="#" class="text-blue-600">Privacy Policy</a></span>
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3 text-sm font-bold text-white shadow-lg hover:opacity-95">Create Account</button>
+      </form>
+      <div class="relative my-8">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+        <div class="relative flex justify-center text-xs uppercase text-slate-500"><span class="bg-white px-2">Or continue with</span></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 py-3 text-sm font-medium text-slate-700 opacity-70" disabled title="Coming soon">Google</button>
+        <button type="button" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 py-3 text-sm font-medium text-slate-700 opacity-70" disabled title="Coming soon">Github</button>
+      </div>
+      <p class="mt-8 text-center text-sm text-slate-600">
+        Already have an account? <a href="{{ url_for('auth.login') }}" class="font-semibold text-blue-600">Sign in</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

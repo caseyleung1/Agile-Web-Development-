@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "components/sidebar.html" import sidebar %}
+{% block main %}
+  <div class="flex min-h-screen bg-slate-50">
+    {{ sidebar(active|default('dashboard')) }}
+    <div class="flex min-h-screen flex-1 flex-col">
+      <header class="flex items-center justify-end border-b border-slate-200 bg-white px-8 py-4">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-full bg-slate-200"></div>
+          <span class="text-sm font-semibold text-slate-900">{{ current_user.full_name if current_user else 'Student' }}</span>
+        </div>
+      </header>
+      <main class="flex-1 overflow-auto p-8">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+{% endblock %}
