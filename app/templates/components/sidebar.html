@@ -1,0 +1,52 @@
+{% macro nav_item(href, label, icon, key, active) %}
+  <a
+    href="{{ href }}"
+    class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
+      {% if active == key %}
+        bg-brand-purple text-white shadow-md
+      {% else %}
+        text-slate-700 hover:bg-slate-100
+      {% endif %}"
+  >
+    {{ icon|safe }}
+    <span>{{ label }}</span>
+  </a>
+{% endmacro %}
+
+{% macro sidebar(active) %}
+  <aside class="flex h-screen w-64 flex-col border-r border-slate-200 bg-white px-3 py-6">
+    <div class="mb-8 px-2 text-lg font-bold text-brand-purple">StudyFlash</div>
+    <nav class="flex flex-1 flex-col gap-1">
+      {{ nav_item(url_for('main.dashboard'), 'Dashboard', icon_grid(), 'dashboard', active) }}
+      {{ nav_item(url_for('sets.my_sets'), 'My Study Sets', icon_stack(), 'sets', active) }}
+      {{ nav_item(url_for('search.search_public'), 'Search', icon_search(), 'search', active) }}
+      {{ nav_item(url_for('sets.create'), 'Create New Set', icon_plus(), 'create', active) }}
+      {{ nav_item(url_for('analytics.analytics'), 'Analytics', icon_chart(), 'analytics', active) }}
+      {{ nav_item(url_for('settings.settings'), 'Settings', icon_sliders(), 'settings', active) }}
+      {{ nav_item(url_for('profile.profile'), 'Profile', icon_cap(), 'profile', active) }}
+    </nav>
+    <a href="{{ url_for('auth.logout') }}" class="mt-auto rounded-xl px-3 py-2 text-sm text-slate-500 hover:bg-slate-100">Log out</a>
+  </aside>
+{% endmacro %}
+
+{% macro icon_grid() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+{% endmacro %}
+{% macro icon_stack() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+{% endmacro %}
+{% macro icon_search() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg>
+{% endmacro %}
+{% macro icon_plus() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+{% endmacro %}
+{% macro icon_chart() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 19V5m4 14V9m4 10V5m4 14v-6"/></svg>
+{% endmacro %}
+{% macro icon_sliders() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8v-2m0 2a2 2 0 100 4m0-4a2 2 0 110 4m0 4v-2m6 0v-2m0 2a2 2 0 100 4m0-4a2 2 0 110 4m0 4v-2"/></svg>
+{% endmacro %}
+{% macro icon_cap() %}
+<svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422A12.083 12.083 0 0112 21.5a12.083 12.083 0 01-6.16-10.922L12 14z"/></svg>
+{% endmacro %}

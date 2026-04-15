@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Sign in · StudyFlash{% endblock %}
+{% block main %}
+  <div class="grid min-h-screen md:grid-cols-2">
+    <div
+      class="relative hidden overflow-hidden rounded-r-3xl md:block"
+      style="background: linear-gradient(135deg, #c4d4ff 0%, #8ec5fc 100%); min-height: 100vh;"
+    >
+      <img
+        src="https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1200&q=80"
+        alt=""
+        class="h-full w-full object-cover opacity-90"
+      />
+    </div>
+    <div class="flex flex-col justify-center bg-white px-8 py-12 md:px-16">
+      <div class="mx-auto w-full max-w-md">
+        <h1 class="text-center text-3xl font-bold text-slate-900">Welcome Back</h1>
+        {% if error %}
+          <p class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-700">{{ error }}</p>
+        {% endif %}
+        <div class="mt-8 space-y-3">
+          <button type="button" class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 opacity-70" disabled title="Coming soon">
+            Login with Gmail <span class="text-lg font-bold text-red-500">G</span>
+          </button>
+          <button type="button" class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 opacity-70" disabled title="Coming soon">
+            Login with Facebook <span class="font-bold text-blue-600">f</span>
+          </button>
+          <button type="button" class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 opacity-70" disabled title="Coming soon">
+            Login with Apple <span>&#xF8FF;</span>
+          </button>
+        </div>
+        <div class="relative my-8">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+          <div class="relative flex justify-center text-xs text-slate-500"><span class="bg-white px-2">Or</span></div>
+        </div>
+        <form method="post" class="space-y-5">
+          <input type="hidden" name="next" value="{{ request.args.get('next','') }}" />
+          <div>
+            <label class="text-sm font-semibold text-slate-900">Email</label>
+            <input name="email" type="email" required placeholder="Enter your email or username" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-semibold text-slate-900">Password</label>
+              <a href="#" class="text-xs text-blue-600">Forget password?</a>
+            </div>
+            <input name="password" type="password" required placeholder="Enter your password" class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+          </div>
+          <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-900 py-3 text-sm font-bold text-white shadow-lg hover:opacity-95">Log in</button>
+        </form>
+        <p class="mt-8 text-center text-sm text-slate-600">
+          Dont have an account ? <a href="{{ url_for('auth.register') }}" class="font-bold text-blue-600">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

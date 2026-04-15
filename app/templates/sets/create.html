@@ -1,0 +1,64 @@
+{% extends "layout_app.html" %}
+{% block title %}Create Study Set · StudyFlash{% endblock %}
+{% set active = 'create' %}
+{% block content %}
+  <div class="mb-4 flex items-center justify-between">
+    <a href="{{ url_for('main.dashboard') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-blue-500 px-4 py-2 text-sm font-medium text-blue-600">&larr; Back to Dashboard</a>
+  </div>
+  <div class="mx-auto max-w-3xl text-center">
+    <h1 class="text-3xl font-bold text-brand-purple">Create New Study Set</h1>
+    <p class="mt-2 font-semibold text-slate-900">Build your own custom flashcard set</p>
+  </div>
+  <form method="post" class="mx-auto mt-8 max-w-3xl space-y-8">
+    <div class="rounded-2xl border-2 border-brand-purple/40 bg-white p-6 shadow-sm">
+      <label class="text-sm font-semibold">Set Title *</label>
+      <input name="title" required placeholder="e.g. Python Logic - Week 1" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+      <label class="mt-4 block text-sm font-semibold">Description</label>
+      <textarea name="description" rows="3" placeholder="Brief description..." class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"></textarea>
+    </div>
+    <div class="rounded-2xl border-2 border-violet-300 bg-violet-50/50 p-6">
+      <div class="flex items-center gap-2 font-semibold text-brand-purple">
+        <span>&#10024;</span> AI Flashcard Generator
+      </div>
+      <textarea id="ai-prompt" rows="4" placeholder="Paste your notes or type a prompt..." class="mt-3 w-full rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm"></textarea>
+      <p class="mt-2 text-xs text-slate-600">Paste notes or try: “Make me 10 flashcards about Python syntax”.</p>
+      <button type="button" onclick="generateAI()" class="mt-4 w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700">Generate Flashcards</button>
+      <p id="ai-status" class="mt-2 text-sm text-slate-600"></p>
+      <div id="ai-preview" class="mt-4 hidden rounded-xl border border-violet-200 bg-white p-4">
+        <div class="font-semibold text-slate-900">Generated card</div>
+        <label class="mt-2 block text-xs font-medium text-slate-600">Question</label>
+        <input id="pv-q" class="mt-1 w-full rounded-lg border px-2 py-1 text-sm" readonly />
+        <label class="mt-2 block text-xs font-medium text-slate-600">Answer</label>
+        <input id="pv-a" class="mt-1 w-full rounded-lg border px-2 py-1 text-sm" readonly />
+        <button type="button" onclick="applyAICard()" class="mt-3 rounded-lg bg-brand-purple px-4 py-2 text-sm font-semibold text-white">Add to Set</button>
+      </div>
+    </div>
+    <div id="questions-container">
+      <div class="question-card mb-8 rounded-2xl border-2 border-brand-purple/50 bg-white p-6 shadow-sm" data-q="1">
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="font-bold text-slate-900">Question 1</h3>
+          <button type="button" class="rounded-lg border-2 border-red-400 px-2 py-1 text-red-600 js-remove-q" data-i="1" title="Remove">&#128465;</button>
+        </div>
+        <label class="text-sm font-semibold">Question (Term) *</label>
+        <input name="term_1" required class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+        <label class="mt-4 block text-sm font-semibold">Correct Answer (Definition) *</label>
+        <input name="def_1" required class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+        <p class="mt-4 text-sm font-medium text-slate-700">Multiple Choice Options for Quiz (include the correct answer)</p>
+        <div class="mt-2 grid grid-cols-2 gap-3">
+          <input name="opt_1_0" placeholder="Option 1" class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+          <input name="opt_1_1" placeholder="Option 2" class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+          <input name="opt_1_2" placeholder="Option 3" class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+          <input name="opt_1_3" placeholder="Option 4" class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-wrap justify-center gap-4">
+      <button type="button" id="add-question-btn" class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white">+ Add question</button>
+      <button type="submit" class="rounded-xl bg-blue-800 px-8 py-3 text-sm font-semibold text-white">Create Study Set</button>
+    </div>
+  </form>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/set_form.js') }}"></script>
+  <script>initSetForm(1);</script>
+{% endblock %}
