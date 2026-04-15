@@ -1,111 +1,177 @@
 {% extends "layout_app.html" %}
 {% block title %}Flip · {{ study_set.title }}{% endblock %}
 {% set active = 'sets' %}
+
 {% block content %}
   <a href="{{ url_for('sets.review_modes', set_id=study_set.id) }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-blue-500 px-4 py-2 text-sm font-medium text-blue-600">&larr; Back</a>
+  
   <div class="mx-auto max-w-2xl text-center">
     <h1 class="mt-6 text-3xl font-bold text-brand-purple">{{ study_set.title }}</h1>
     <p id="flip-progress" class="mt-2 font-semibold text-slate-800">Card 1 of {{ cards|length }}</p>
+
+    <!-- This div keeps the exact same size and padding as your original -->
     <div id="flip-card" class="mt-8 rounded-2xl border-2 border-brand-purple/50 bg-white p-10 shadow-lg">
-      <div id="flip-front">
-        <p class="text-sm font-bold text-slate-500">Question</p>
-        <p id="flip-q" class="mt-4 text-lg font-medium text-slate-900"></p>
-        <button type="button" id="flip-btn" class="mt-8 rounded-full border-2 border-brand-purple px-6 py-2 text-sm font-semibold text-brand-purple hover:bg-violet-50">Click to flip</button>
-      </div>
-      <div id="flip-back" class="hidden">
-        <p class="text-sm font-bold text-slate-500">Answer</p>
-        <p id="flip-a" class="mt-4 text-lg font-medium text-slate-900"></p>
-        <button type="button" id="flip-btn2" class="mt-8 rounded-full border-2 border-brand-purple px-6 py-2 text-sm font-semibold text-brand-purple hover:bg-violet-50">Click to flip</button>
-        <p class="mt-10 text-sm font-medium text-slate-700">How well did you know about this?</p>
-        <div class="mt-4 flex flex-wrap justify-center gap-3">
-          <button type="button" class="rate rounded-xl bg-emerald-500 px-6 py-2 text-sm font-semibold text-white" data-r="easy">Easy</button>
-          <button type="button" class="rate rounded-xl bg-amber-500 px-6 py-2 text-sm font-semibold text-white" data-r="medium">Medium</button>
-          <button type="button" class="rate rounded-xl bg-red-500 px-6 py-2 text-sm font-semibold text-white" data-r="hard">Hard</button>
+      
+      <div id="flip-3d" class="relative">
+        <!-- Front Face -->
+        <div id="flip-front" class="flip-face">
+          <p class="text-sm font-bold text-slate-500">Question</p>
+          <p id="flip-q" class="mt-4 text-lg font-medium text-slate-900"></p>
+          <button type="button" id="flip-btn" class="mt-8 rounded-full border-2 border-brand-purple px-6 py-2 text-sm font-semibold text-brand-purple hover:bg-violet-50">Click to flip</button>
+        </div>
+
+        <!-- Back Face -->
+        <div id="flip-back" class="flip-face flip-back-face">
+          <p class="text-sm font-bold text-slate-500">Answer</p>
+          <p id="flip-a" class="mt-4 text-lg font-medium text-slate-900"></p>
+          <button type="button" id="flip-btn2" class="mt-8 rounded-full border-2 border-brand-purple px-6 py-2 text-sm font-semibold text-brand-purple hover:bg-violet-50">Click to flip</button>
+          <p class="mt-10 text-sm font-medium text-slate-700">How well did you know about this?</p>
+          <div class="mt-4 flex flex-wrap justify-center gap-3">
+            <button type="button" class="rate rounded-xl bg-emerald-500 px-6 py-2 text-sm font-semibold text-white" data-r="easy">Easy</button>
+            <button type="button" class="rate rounded-xl bg-amber-500 px-6 py-2 text-sm font-semibold text-white" data-r="medium">Medium</button>
+            <button type="button" class="rate rounded-xl bg-red-500 px-6 py-2 text-sm font-semibold text-white" data-r="hard">Hard</button>
+          </div>
         </div>
       </div>
     </div>
+
     <div class="mt-8 flex items-center justify-between">
       <div id="flip-dots" class="flex gap-2"></div>
       <button type="button" id="flip-next" class="rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white">Next &gt;</button>
     </div>
   </div>
+
   <script type="application/json" id="flip-data">{{ cards|tojson }}</script>
 {% endblock %}
+
 {% block scripts %}
-  <script>
-    (function () {
-      const cards = JSON.parse(document.getElementById("flip-data").textContent);
-      let idx = 0;
-      let showing = "q";
-      const elQ = document.getElementById("flip-q");
-      const elA = document.getElementById("flip-a");
-      const front = document.getElementById("flip-front");
-      const back = document.getElementById("flip-back");
-      const prog = document.getElementById("flip-progress");
-      const dots = document.getElementById("flip-dots");
-      function renderDots() {
-        dots.innerHTML = "";
-        cards.forEach((_, i) => {
-          const b = document.createElement("button");
-          b.type = "button";
-          b.textContent = String(i + 1);
-          b.className =
-            "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold " +
-            (i === idx ? "bg-teal-500 text-white" : "border border-slate-300 text-slate-600");
-          b.addEventListener("click", () => {
-            idx = i;
-            showing = "q";
-            render();
-          });
-          dots.appendChild(b);
+<style>
+  #flip-card {
+    perspective: 1000px;
+  }
+
+  #flip-3d {
+    position: relative;
+    width: 100%;
+    min-height: 280px;           /* Ensures both sides have space */
+    transition: transform 650ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform-style: preserve-3d;
+  }
+
+  #flip-3d.is-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #flip-front {
+    transform: rotateY(0deg);
+  }
+
+  #flip-back {
+    transform: rotateY(180deg);
+  }
+</style>
+
+<script>
+  (function () {
+    const cards = JSON.parse(document.getElementById("flip-data").textContent);
+    let idx = 0;
+    let isFlipped = false;
+
+    const flip3d = document.getElementById("flip-3d");
+    const elQ = document.getElementById("flip-q");
+    const elA = document.getElementById("flip-a");
+    const prog = document.getElementById("flip-progress");
+    const dots = document.getElementById("flip-dots");
+
+    function renderDots() {
+      dots.innerHTML = "";
+      cards.forEach((_, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = String(i + 1);
+        b.className = 
+          "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold " +
+          (i === idx ? "bg-teal-500 text-white" : "border border-slate-300 text-slate-600");
+        
+        b.addEventListener("click", () => {
+          idx = i;
+          isFlipped = false;
+          render(false);
         });
+        dots.appendChild(b);
+      });
+    }
+
+    function render(animate = true) {
+      const c = cards[idx];
+      elQ.textContent = c.term;
+      elA.textContent = c.definition;
+      prog.textContent = "Card " + (idx + 1) + " of " + cards.length;
+
+      if (!animate) {
+        flip3d.style.transition = "none";
       }
-      function render() {
+
+      flip3d.classList.toggle("is-flipped", isFlipped);
+
+      if (!animate) {
+        void flip3d.offsetHeight;   // force reflow
+        flip3d.style.transition = "";
+      }
+
+      renderDots();
+    }
+
+    // Flip buttons
+    document.getElementById("flip-btn").onclick = () => {
+      isFlipped = true;
+      render(true);
+    };
+
+    document.getElementById("flip-btn2").onclick = () => {
+      isFlipped = false;
+      render(true);
+    };
+
+    // Next button
+    document.getElementById("flip-next").onclick = () => {
+      if (idx < cards.length - 1) {
+        idx += 1;
+        isFlipped = false;
+        render(false);
+      }
+    };
+
+    // Rating buttons
+    document.querySelectorAll(".rate").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const r = btn.getAttribute("data-r");
         const c = cards[idx];
-        elQ.textContent = c.term;
-        elA.textContent = c.definition;
-        prog.textContent = "Card " + (idx + 1) + " of " + cards.length;
-        if (showing === "q") {
-          front.classList.remove("hidden");
-          back.classList.add("hidden");
-        } else {
-          front.classList.add("hidden");
-          back.classList.remove("hidden");
-        }
-        renderDots();
-      }
-      document.getElementById("flip-btn").onclick = () => {
-        showing = "a";
-        render();
-      };
-      document.getElementById("flip-btn2").onclick = () => {
-        showing = "q";
-        render();
-      };
-      document.getElementById("flip-next").onclick = () => {
+
+        await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ card_id: c.id, rating: r }),
+        });
+
         if (idx < cards.length - 1) {
           idx += 1;
-          showing = "q";
-          render();
+          isFlipped = false;
+          render(false);
         }
-      };
-      document.querySelectorAll(".rate").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const r = btn.getAttribute("data-r");
-          const c = cards[idx];
-          await fetch("/api/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ card_id: c.id, rating: r }),
-          });
-          if (idx < cards.length - 1) {
-            idx += 1;
-            showing = "q";
-            render();
-          }
-        });
       });
-      render();
-    })();
-  </script>
+    });
+
+    // Initial render (no animation)
+    render(false);
+  })();
+</script>
 {% endblock %}
