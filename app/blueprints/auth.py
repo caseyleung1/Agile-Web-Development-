@@ -34,7 +34,7 @@ def register():
             db.session.commit()
             session["user_id"] = u.id
             return redirect(url_for("main.dashboard"))
-    return render_template("auth/register.html", error=error)
+    return render_template("auth/register.html", error=error, full_name=full_name, email=email, agree=agree)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])

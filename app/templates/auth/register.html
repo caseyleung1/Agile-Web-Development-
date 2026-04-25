@@ -11,11 +11,11 @@
       <form method="post" class="mt-8 space-y-5">
         <div>
           <label class="text-sm font-semibold text-slate-900">Full name</label>
-          <input name="full_name" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+          <input name="full_name" value="{{ full_name }}" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
         </div>
         <div>
           <label class="text-sm font-semibold text-slate-900">Email Address</label>
-          <input name="email" type="email" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
+          <input name="email" type="email" value="{{ email }}" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
         </div>
         <div>
           <label class="text-sm font-semibold text-slate-900">Password</label>
@@ -26,7 +26,7 @@
           <input name="confirm_password" type="password" required class="mt-1 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm outline-none ring-brand-purple focus:ring-2" />
         </div>
         <label class="flex items-start gap-2 text-sm text-slate-700">
-          <input type="checkbox" name="terms" class="mt-1 rounded border-slate-300" />
+<input type="checkbox" name="terms" {{ "checked" if agree else "" }} class="mt-1 rounded border-slate-300" />          
           <span>I agree to the <a href="#" class="text-blue-600">Terms and Conditions</a> and <a href="#" class="text-blue-600">Privacy Policy</a></span>
         </label>
         <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3 text-sm font-bold text-white shadow-lg hover:opacity-95">Create Account</button>
