@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Study App{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">Welcome back</p>
+    <h1>Study smarter with shared flashcard sets.</h1>
+    <p>
+        This starter page is ready for authentication, study set creation,
+        public study sets, and progress tracking.
+    </p>
+</section>
+
+<section class="card-grid" aria-labelledby="study-mode-heading">
+    <h2 id="study-mode-heading">Study Modes</h2>
+    <article class="feature-card">
+        <i class="fa-solid fa-clone"></i>
+        <h3>Flip Mode</h3>
+        <p>Quick card flipping practice.</p>
+    </article>
+    <article class="feature-card">
+        <i class="fa-solid fa-question"></i>
+        <h3>Quiz Mode</h3>
+        <p>Test your knowledge.</p>
+    </article>
+    <article class="feature-card">
+        <i class="fa-solid fa-stopwatch"></i>
+        <h3>Time Game</h3>
+        <p>Beat the clock.</p>
+    </article>
+</section>
+
+<section class="card-grid" aria-labelledby="recent-set-heading">
+    <h2 id="recent-set-heading">Recent Public Study Sets</h2>
+    <article class="set-card">
+        <i class="fa-solid fa-book-open"></i>
+        <h3>Spanish Vocabulary - Unit 3</h3>
+        <p>45 cards</p>
+    </article>
+    <article class="set-card">
+        <i class="fa-solid fa-book-open"></i>
+        <h3>Math Basics</h3>
+        <p>20 cards</p>
+    </article>
+    <article class="set-card">
+        <i class="fa-solid fa-book-open"></i>
+        <h3>Chemistry Elements</h3>
+        <p>45 cards</p>
+    </article>
+    <article class="set-card">
+        <i class="fa-solid fa-book-open"></i>
+        <h3>Biology: Cell Structure</h3>
+        <p>30 cards</p>
+    </article>
+</section>
+{% endblock %}
