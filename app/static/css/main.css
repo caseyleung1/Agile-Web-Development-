@@ -32,7 +32,7 @@ a {
     justify-content: space-between;
     gap: 1rem;
     height: 58px;
-    padding: 0 1.5rem;
+    padding: 0 1.8rem;
     background: var(--card);
     border-bottom: 1px solid var(--border);
 }
@@ -70,7 +70,7 @@ a {
 
 .page-layout {
     display: grid;
-    grid-template-columns: 230px minmax(0, 1fr);
+    grid-template-columns: 275px minmax(0, 1fr);
     min-height: calc(100vh - 58px);
 }
 
@@ -78,7 +78,7 @@ a {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    padding: 1.4rem 1.2rem;
+    padding: 1.5rem 1.45rem;
     background: var(--card);
     border-right: 1px solid var(--border);
 }
@@ -87,7 +87,7 @@ a {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 0.85rem;
+    padding: 0.8rem 1rem;
     border-radius: 0.25rem;
     color: #343442;
     font-size: 0.9rem;
@@ -101,9 +101,9 @@ a {
 }
 
 .main-content {
-    max-width: 980px;
+    max-width: 1140px;
     width: 100%;
-    padding: 3rem 2.5rem;
+    padding: 3.05rem 3rem;
 }
 
 .hero,
@@ -120,8 +120,8 @@ a {
     align-items: center;
     justify-content: space-between;
     gap: 2rem;
-    margin-bottom: 2.6rem;
-    padding: 1.5rem 3rem 1.5rem 0;
+    margin-bottom: 3rem;
+    padding: 1.7rem 4.7rem 1.7rem 0;
     background: transparent;
     border: 0;
     box-shadow: none;
@@ -129,7 +129,7 @@ a {
 
 .hero h1 {
     margin: 0 0 0.8rem;
-    font-size: clamp(2.2rem, 4vw, 3.35rem);
+    font-size: clamp(2.6rem, 4.4vw, 3.75rem);
     line-height: 1.05;
     letter-spacing: -0.05em;
 }
@@ -144,8 +144,8 @@ a {
 .hero-sketch {
     display: grid;
     place-items: center;
-    width: 130px;
-    height: 92px;
+    width: 145px;
+    height: 100px;
     border: 3px solid var(--ink);
     border-radius: 0.2rem;
     color: var(--primary);
@@ -156,7 +156,7 @@ a {
 
 .study-modes,
 .recent-sets {
-    margin-bottom: 2rem;
+    margin-bottom: 2.3rem;
 }
 
 .study-modes h2,
@@ -169,15 +169,15 @@ a {
 .mode-list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.3rem;
+    gap: 1.45rem;
 }
 
 .feature-card {
     display: flex;
     align-items: center;
     gap: 1.1rem;
-    min-height: 116px;
-    padding: 1.25rem;
+    min-height: 120px;
+    padding: 1.35rem 1.55rem;
 }
 
 .icon-bubble {
@@ -225,11 +225,11 @@ a {
 
 .set-row {
     display: grid;
-    grid-template-columns: 28px minmax(220px, 1.7fr) 110px 130px 90px;
+    grid-template-columns: 36px minmax(300px, 1.8fr) 120px 150px 100px;
     align-items: center;
     gap: 1rem;
     min-height: 58px;
-    padding: 0.85rem 1.3rem;
+    padding: 0.9rem 1.45rem;
     border-bottom: 1px solid var(--border);
 }
 
