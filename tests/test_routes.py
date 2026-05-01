@@ -15,4 +15,4 @@ def test_homepage_loads():
         response = client.get("/")
 
     assert response.status_code == 200
-    assert b"Study smarter" in response.data
+    assert b"Good to see you" in response.data
