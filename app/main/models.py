@@ -3,7 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, login_manager
 
-
+'''user, studyset, and flashcard models'''
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))

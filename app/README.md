@@ -7,9 +7,10 @@ sets from other users.
 
 ## Team Members
 
-| UWA ID | Name | GitHub Username |
-| --- | --- | --- |
-| TODO | TODO | TODO |
+| UWA ID    | Name          | GitHub Username |
+| ---       | ---           | --- |
+| 24108363  | Silvi Claudia | Silviclaudia |
+...
 
 ## Project Structure
 
