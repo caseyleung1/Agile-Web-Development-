@@ -8,7 +8,7 @@ main = Blueprint("main", __name__)
 def index():
     return render_template("index.html")
 
-@main.route('tests/analytics')
+@main.route('/analytics')
 @login_required
 def analytics():
     totalcards = sum(len(s_set.flashcards) for s_set in current_user.study_sets)
