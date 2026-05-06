@@ -16,7 +16,7 @@ def analytics():
     #data for the visuals 
     stats = {
         'cards': totalcards, 
-        'accuracy': 89, 
+        'accuracy': 90,
         'streak': 12, 
         'chart_data': [50, 65, 78, 42, 61, 20, 40]
     }
