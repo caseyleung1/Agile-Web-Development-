@@ -2,6 +2,9 @@
     max-width: 760px;
 }
 
+.main-content:has(.settings-page) {
+    background: #f2f5fb;
+}
 .settings-header {
     margin-bottom: 1.6rem;
     padding-bottom: 1.2rem;
@@ -37,8 +40,13 @@
     background-position: 0 64px;
 }
 
-.settings-card:nth-of-type(odd)  { transform: rotate(-0.3deg); }
-.settings-card:nth-of-type(even) { transform: rotate(0.3deg); }
+.settings-card:nth-of-type(odd) {
+    transform: rotate(-0.3deg);
+}
+
+.settings-card:nth-of-type(even) {
+    transform: rotate(0.3deg);
+}
 
 .settings-card h2 {
     margin: 0 0 1rem;
@@ -61,11 +69,21 @@
     transform: rotate(4deg);
 }
 
-.settings-card.coming-soon { background-color: #fdfaf2; }
-.settings-card.coming-soon .section-tag { background: var(--sticky-p); }
+.settings-card.coming-soon {
+    background-color: #fdfaf2;
+}
 
-.input-group { margin-bottom: 1rem; }
-.input-group:last-child { margin-bottom: 0; }
+.settings-card.coming-soon .section-tag {
+    background: var(--sticky-p);
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group:last-child {
+    margin-bottom: 0;
+}
 
 .input-group label {
     display: block;
@@ -118,6 +136,77 @@
     font-weight: 600;
     color: var(--ink);
     cursor: pointer;
+}
+
+/* Theme colour selector */
+.setting-description {
+    margin: -0.2rem 0 0.9rem;
+    color: var(--ink-soft);
+    font-family: "Nunito", sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.theme-options {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 0.6rem;
+}
+
+.theme-choice {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    box-shadow: var(--shadow-hard);
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, outline 0.08s ease;
+}
+
+.theme-choice:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 0 var(--ink);
+}
+
+.theme-choice:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 0 var(--ink);
+}
+
+.theme-choice.active {
+    outline: 4px solid var(--paper);
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 0 var(--ink);
+}
+
+.theme-yellow {
+    background: #f7dc6f;
+}
+
+.theme-blue {
+    background: #7ec8e3;
+}
+
+.theme-pink {
+    background: #f5a6c8;
+}
+
+.theme-green {
+    background: #8fd19e;
+}
+
+.theme-purple {
+    background: #9b8cff;
+}
+
+.theme-message {
+    margin-top: 0.9rem;
+    color: var(--ink-soft);
+    font-family: "Nunito", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
 }
 
 .button-row {
@@ -174,7 +263,21 @@
 }
 
 @media (max-width: 600px) {
-    .button-row { flex-direction: column-reverse; }
+    .button-row {
+        flex-direction: column-reverse;
+    }
+
     .cancel-button,
-    .save-button { width: 100%; }
+    .save-button {
+        width: 100%;
+    }
+
+    .theme-options {
+        gap: 0.75rem;
+    }
+
+    .theme-choice {
+        width: 40px;
+        height: 40px;
+    }
 }
