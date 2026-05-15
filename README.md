@@ -47,6 +47,10 @@ Install dependencies:
 pip install -r requirements.txt
 
 ```
+# Initialize database
+```
+flask init-db
+```
 
 ```
 
