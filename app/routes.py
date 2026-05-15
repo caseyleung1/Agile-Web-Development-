@@ -353,3 +353,71 @@ def analytics():
         chart_data=chart_data,
         chart_labels=chart_labels,
     )
+
+
+MODE_CONFIG = {
+    "flip": {
+        "title": "Flip Mode",
+        "tagline": "Go through your cards one by one. Calm and classic.",
+        "eyebrow": "flip mode ✦",
+        "accent": "var(--accent)",
+        "start_endpoint": "main.study_set_study",
+        "cta": "Start flipping",
+    },
+    "quiz": {
+        "title": "Quiz Mode",
+        "tagline": "Test what you know with multiple-choice questions.",
+        "eyebrow": "quiz mode ✦",
+        "accent": "var(--accent-2)",
+        "start_endpoint": "main.study_set_quiz",
+        "cta": "Start quiz",
+    },
+    "time": {
+        "title": "Time Game",
+        "tagline": "Beat the clock — answer as many as you can in 60 seconds.",
+        "eyebrow": "time game ✦",
+        "accent": "#e8a13d",
+        "start_endpoint": "main.study_set_time",
+        "cta": "Start the clock",
+    },
+}
+
+
+@main.route("/study-sets/<int:study_set_id>/quiz")
+@login_required
+def study_set_quiz(study_set_id):
+    study_set = get_owned_study_set_or_404(study_set_id)
+    if not study_set.flashcards:
+        flash("Add at least one flashcard before starting a quiz.")
+        return redirect(url_for("main.study_set_detail", study_set_id=study_set.id))
+    return render_template("quiz_mode.html", study_set=study_set)
+
+
+@main.route("/study-sets/<int:study_set_id>/time")
+@login_required
+def study_set_time(study_set_id):
+    study_set = get_owned_study_set_or_404(study_set_id)
+    if len(study_set.flashcards) < 2:
+        flash("Add at least two flashcards before starting Time Game.")
+        return redirect(url_for("main.study_set_detail", study_set_id=study_set.id))
+    return render_template("time_mode.html", study_set=study_set)
+
+
+@main.route("/modes/<mode>")
+@login_required
+def mode_select(mode):
+    if mode not in MODE_CONFIG:
+        abort(404)
+
+    user_study_sets = (
+        StudySet.query.filter_by(user_id=current_user.id)
+        .order_by(StudySet.id.desc())
+        .all()
+    )
+
+    return render_template(
+        "mode_select.html",
+        mode=mode,
+        config=MODE_CONFIG[mode],
+        study_sets=user_study_sets,
+    )
