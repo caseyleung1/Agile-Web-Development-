@@ -81,6 +81,52 @@
             </div>
         </div>
 
+        <div class="settings-card">
+            <span class="section-tag">customise</span>
+            <h2>Appearance</h2>
+
+            <div class="input-group">
+                <label>Theme colour</label>
+                <p class="setting-description">
+                    Choose the colour used for buttons, highlights, and labels.
+                </p>
+
+                <div class="theme-options">
+                    <button class="theme-choice theme-yellow"
+                            data-theme="yellow"
+                            type="button"
+                            aria-label="Yellow theme">
+                    </button>
+
+                    <button class="theme-choice theme-blue"
+                            data-theme="blue"
+                            type="button"
+                            aria-label="Blue theme">
+                    </button>
+
+                    <button class="theme-choice theme-pink"
+                            data-theme="pink"
+                            type="button"
+                            aria-label="Pink theme">
+                    </button>
+
+                    <button class="theme-choice theme-green"
+                            data-theme="green"
+                            type="button"
+                            aria-label="Green theme">
+                    </button>
+
+                    <button class="theme-choice theme-purple"
+                            data-theme="purple"
+                            type="button"
+                            aria-label="Purple theme">
+                    </button>
+                </div>
+
+                <p id="theme-message" class="theme-message"></p>
+            </div>
+        </div>
+
         <div class="button-row">
             <a href="{{ url_for('main.profile') }}" class="cancel-button">Cancel</a>
             <button type="submit" class="save-button">Save changes</button>
