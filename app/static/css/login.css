@@ -147,68 +147,6 @@ body {
 .flash-danger,
 .flash-error { color: var(--ink); }
 
-.social-login {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.4rem;
-}
-
-.social-login button {
-    width: 100%;
-    height: 50px;
-    background: var(--paper);
-    color: var(--ink);
-    border: 2px solid var(--ink);
-    border-radius: 8px;
-    box-shadow: 3px 3px 0 0 var(--ink);
-    font-family: "Nunito", sans-serif;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
-}
-
-.social-login button:hover {
-    background: var(--sticky-y);
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 0 var(--ink);
-}
-
-.social-login button:active {
-    transform: translate(3px, 3px);
-    box-shadow: 0 0 0 0 var(--ink);
-}
-
-.google-svg { width: 20px; height: 20px; display: block; }
-.social-login i { font-size: 1.2rem; }
-.facebook-icon { color: #1877f2; }
-.apple-icon { color: var(--ink); }
-
-.divider {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 1.4rem;
-}
-
-.divider div {
-    flex: 1;
-    height: 0;
-    border-top: 2px dashed var(--ink);
-    opacity: 0.4;
-}
-
-.divider p {
-    color: var(--ink-soft);
-    font-family: "Caveat", cursive;
-    font-size: 1.1rem;
-}
-
 form { display: flex; flex-direction: column; gap: 1.1rem; }
 
 .input-group label {

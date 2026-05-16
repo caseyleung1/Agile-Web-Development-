@@ -1,180 +1,180 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block title %}Study Dashboard{% endblock %}</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Study Dashboard{% endblock %}</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&family=Caveat:wght@500;600;700&display=swap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&family=Caveat:wght@500;600;700&display=swap">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
-        {% block extra_css %}{% endblock %}
-    </head>
+    {% block extra_css %}{% endblock %}
+</head>
 
-    <body>
-        <div class="bg-particles" aria-hidden="true">
-            <span class="p1">✦</span>
-            <span class="p2">✦</span>
-            <span class="p3">✦</span>
-            <span class="p4">✦</span>
-            <span class="p5">✦</span>
-            <span class="p6">✦</span>
-            <span class="p7">✦</span>
-        </div>
+<body>
+    <div class="bg-particles" aria-hidden="true">
+        <span class="p1">✦</span>
+        <span class="p2">✦</span>
+        <span class="p3">✦</span>
+        <span class="p4">✦</span>
+        <span class="p5">✦</span>
+        <span class="p6">✦</span>
+        <span class="p7">✦</span>
+    </div>
 
-        <header class="site-header">
-            <a class="brand" href="{{ url_for('main.index') }}">
-                <span class="brand-text">CITS3403 Project <span class="marker-underline">CAVSLIT</span></span>
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('main.index') }}">
+            <span class="brand-text">CITS3403 Project <span class="marker-underline">CAVSLIT</span></span>
+        </a>
+
+        <nav class="auth-actions" aria-label="Authentication">
+            {% if current_user.is_authenticated %}
+                <a class="welcome" href="{{ url_for('main.profile') }}" title="View your profile">
+                    <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+                    <span>Hi, <b>{{ current_user.username }}</b></span>
+                </a>
+                <a class="button button-secondary" href="{{ url_for('main.logout') }}">Log out</a>
+            {% else %}
+                <a class="button button-secondary" href="{{ url_for('main.login') }}">Sign in</a>
+                <a class="button" href="{{ url_for('main.register') }}">Sign up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="page-layout">
+        <aside class="left-sidebar" aria-label="Primary navigation">
+
+            <a class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}"
+               href="{{ url_for('main.index') }}" aria-label="Dashboard">
+                <i class="fa-solid fa-house" aria-hidden="true"></i>
+                <span>Dashboard</span>
             </a>
 
-            <nav class="auth-actions" aria-label="Authentication">
-                {% if current_user.is_authenticated %}
-                    <a class="welcome" href="{{ url_for('main.profile') }}" title="View your profile">
-                        <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
-                        <span>Hi, <b>{{ current_user.username }}</b></span>
-                    </a>
-                    <a class="button button-secondary" href="{{ url_for('main.logout') }}">Log out</a>
-                {% else %}
-                    <a class="button button-secondary" href="{{ url_for('main.login') }}">Sign in</a>
-                    <a class="button" href="{{ url_for('main.register') }}">Sign up</a>
-                {% endif %}
-            </nav>
-        </header>
+            {% if current_user.is_authenticated %}
 
-        <div class="page-layout">
-            <aside class="left-sidebar" aria-label="Primary navigation">
-
-                <a class="nav-item {% if request.endpoint == 'main.index' %}active{% endif %}"
-                   href="{{ url_for('main.index') }}" aria-label="Dashboard">
-                    <i class="fa-solid fa-house" aria-hidden="true"></i>
-                    <span>Dashboard</span>
+                <a class="nav-item {% if request.endpoint in ['main.study_sets', 'main.study_set_detail', 'main.study_set_study', 'main.edit_study_set'] %}active{% endif %}"
+                   href="{{ url_for('main.study_sets') }}" aria-label="My study sets">
+                    <i class="fa-solid fa-book" aria-hidden="true"></i>
+                    <span>My study sets</span>
                 </a>
 
-                {% if current_user.is_authenticated %}
+                <a class="nav-item {% if request.endpoint in ['main.search_public_sets', 'main.browse_public_study_set'] %}active{% endif %}"
+                   href="{{ url_for('main.search_public_sets') }}" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <span>Search</span>
+                </a>
 
-                    <a class="nav-item {% if request.endpoint in ['main.study_sets', 'main.study_set_detail', 'main.study_set_study', 'main.edit_study_set'] %}active{% endif %}"
-                       href="{{ url_for('main.study_sets') }}" aria-label="My study sets">
-                        <i class="fa-solid fa-book" aria-hidden="true"></i>
-                        <span>My study sets</span>
-                    </a>
+                <a class="nav-item {% if request.endpoint == 'main.create_study_set' %}active{% endif %}"
+                   href="{{ url_for('main.create_study_set') }}" aria-label="Create new set">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    <span>Create new set</span>
+                </a>
 
-                    <a class="nav-item {% if request.endpoint in ['main.search_public_sets', 'main.browse_public_study_set'] %}active{% endif %}"
-                       href="{{ url_for('main.search_public_sets') }}" aria-label="Search">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <span>Search</span>
-                    </a>
+                <a class="nav-item {% if request.endpoint == 'main.analytics' %}active{% endif %}"
+                   href="{{ url_for('main.analytics') }}" aria-label="Analytics">
+                    <i class="fa-solid fa-chart-bar" aria-hidden="true"></i>
+                    <span>Analytics</span>
+                </a>
 
-                    <a class="nav-item {% if request.endpoint == 'main.create_study_set' %}active{% endif %}"
-                       href="{{ url_for('main.create_study_set') }}" aria-label="Create new set">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                        <span>Create new set</span>
-                    </a>
+                <a class="nav-item {% if request.endpoint == 'main.settings' %}active{% endif %}"
+                   href="{{ url_for('main.settings') }}" aria-label="Settings">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                    <span>Settings</span>
+                </a>
 
-                    <a class="nav-item {% if request.endpoint == 'main.analytics' %}active{% endif %}"
-                       href="{{ url_for('main.analytics') }}" aria-label="Analytics">
-                        <i class="fa-solid fa-chart-bar" aria-hidden="true"></i>
-                        <span>Analytics</span>
-                    </a>
+                <a class="nav-item {% if request.endpoint == 'main.profile' %}active{% endif %}"
+                   href="{{ url_for('main.profile') }}" aria-label="Profile">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <span>Profile</span>
+                </a>
 
-                    <a class="nav-item {% if request.endpoint == 'main.settings' %}active{% endif %}"
-                       href="{{ url_for('main.settings') }}" aria-label="Settings">
-                        <i class="fa-solid fa-gear" aria-hidden="true"></i>
-                        <span>Settings</span>
-                    </a>
+            {% endif %}
 
-                    <a class="nav-item {% if request.endpoint == 'main.profile' %}active{% endif %}"
-                       href="{{ url_for('main.profile') }}" aria-label="Profile">
-                        <i class="fa-solid fa-user" aria-hidden="true"></i>
-                        <span>Profile</span>
-                    </a>
+        </aside>
 
+        <main class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
                 {% endif %}
+            {% endwith %}
 
-            </aside>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
-            <main class="main-content">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                {% block content %}{% endblock %}
-            </main>
-        </div>
-
-        <footer class="site-footer" role="contentinfo">
-            <div class="site-footer-inner">
-                <div class="site-footer-meta">
-                    <span class="site-footer-mark">CAVSLIT</span>
-                    <span class="site-footer-text">
-                        CITS3403 group project,
-                        The University of Western Australia.
-                    </span>
-                </div>
-                <nav class="site-footer-links" aria-label="Footer">
-                    <a href="{{ url_for('main.terms') }}">Terms</a>
-                    <span aria-hidden="true">·</span>
-                    <a href="https://github.com/caseyleung1/Agile-Web-Development-"
-                       target="_blank" rel="noopener noreferrer">Source</a>
-                </nav>
+    <footer class="site-footer" role="contentinfo">
+        <div class="site-footer-inner">
+            <div class="site-footer-meta">
+                <span class="site-footer-mark">CAVSLIT</span>
+                <span class="site-footer-text">
+                    CITS3403 group project,
+                    The University of Western Australia.
+                </span>
             </div>
-        </footer>
+            <nav class="site-footer-links" aria-label="Footer">
+                <a href="{{ url_for('main.terms') }}">Terms</a>
+                <span aria-hidden="true">·</span>
+                <a href="https://github.com/caseyleung1/Agile-Web-Development-"
+                   target="_blank" rel="noopener noreferrer">Source</a>
+            </nav>
+        </div>
+    </footer>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const savedTheme = localStorage.getItem("studyDashboardTheme") || "yellow";
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const savedTheme = localStorage.getItem("studyDashboardTheme") || "yellow";
 
-                document.body.classList.remove(
-                    "theme-yellow",
-                    "theme-blue",
-                    "theme-pink",
-                    "theme-green",
-                    "theme-purple"
-                );
+            document.body.classList.remove(
+                "theme-yellow",
+                "theme-blue",
+                "theme-pink",
+                "theme-green",
+                "theme-purple"
+            );
 
-                document.body.classList.add("theme-" + savedTheme);
+            document.body.classList.add("theme-" + savedTheme);
 
-                const themeButtons = document.querySelectorAll(".theme-choice");
-                const themeMessage = document.getElementById("theme-message");
+            const themeButtons = document.querySelectorAll(".theme-choice");
+            const themeMessage = document.getElementById("theme-message");
 
-                themeButtons.forEach(function (button) {
-                    const buttonTheme = button.dataset.theme;
+            themeButtons.forEach(function (button) {
+                const buttonTheme = button.dataset.theme;
 
-                    if (buttonTheme === savedTheme) {
-                        button.classList.add("active");
-                    }
+                if (buttonTheme === savedTheme) {
+                    button.classList.add("active");
+                }
 
-                    button.addEventListener("click", function () {
-                        document.body.classList.remove(
-                            "theme-yellow",
-                            "theme-blue",
-                            "theme-pink",
-                            "theme-green",
-                            "theme-purple"
-                        );
+                button.addEventListener("click", function () {
+                    document.body.classList.remove(
+                        "theme-yellow",
+                        "theme-blue",
+                        "theme-pink",
+                        "theme-green",
+                        "theme-purple"
+                    );
 
-                        document.body.classList.add("theme-" + buttonTheme);
-                        localStorage.setItem("studyDashboardTheme", buttonTheme);
+                    document.body.classList.add("theme-" + buttonTheme);
+                    localStorage.setItem("studyDashboardTheme", buttonTheme);
 
-                        themeButtons.forEach(function (btn) {
-                            btn.classList.remove("active");
-                        });
-
-                        button.classList.add("active");
-
-                        if (themeMessage) {
-                            themeMessage.textContent = "Theme updated successfully.";
-                        }
+                    themeButtons.forEach(function (btn) {
+                        btn.classList.remove("active");
                     });
+
+                    button.classList.add("active");
+
+                    if (themeMessage) {
+                        themeMessage.textContent = "Theme updated successfully.";
+                    }
                 });
             });
-        </script>
-    </body>
+        });
+    </script>
+</body>
 </html>
