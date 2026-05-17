@@ -5,6 +5,7 @@
 .main-content:has(.settings-page) {
     background: #f2f5fb;
 }
+
 .settings-header {
     margin-bottom: 1.6rem;
     padding-bottom: 1.2rem;
@@ -77,6 +78,18 @@
     background: var(--sticky-p);
 }
 
+.setting-description {
+    margin: -0.2rem 0 0.9rem;
+    color: var(--ink-soft);
+    font-family: "Nunito", sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.settings-card .setting-description {
+    margin-bottom: 1rem;
+}
+
 .input-group {
     margin-bottom: 1rem;
 }
@@ -109,11 +122,20 @@
     transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease;
 }
 
+.input-group input::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.8;
+}
+
 .input-group input:focus,
 .input-group select:focus {
     background: var(--sticky-y);
     transform: translate(-1px, -1px);
     box-shadow: 3px 3px 0 0 var(--ink);
+}
+
+.input-group input[type="password"] {
+    letter-spacing: 0.04rem;
 }
 
 .checkbox-group {
@@ -139,14 +161,6 @@
 }
 
 /* Theme colour selector */
-.setting-description {
-    margin: -0.2rem 0 0.9rem;
-    color: var(--ink-soft);
-    font-family: "Nunito", sans-serif;
-    font-size: 0.92rem;
-    line-height: 1.5;
-}
-
 .theme-options {
     display: flex;
     align-items: center;
@@ -262,7 +276,24 @@
     box-shadow: 0 0 0 0 var(--ink);
 }
 
+/* Password update button inside security card */
+.settings-card .button-row {
+    margin-top: 1.3rem;
+}
+
+.settings-card .button-row .save-button {
+    min-width: 160px;
+}
+
 @media (max-width: 600px) {
+    .settings-page {
+        max-width: 100%;
+    }
+
+    .settings-card {
+        padding: 1.4rem 1.1rem 1.2rem;
+    }
+
     .button-row {
         flex-direction: column-reverse;
     }

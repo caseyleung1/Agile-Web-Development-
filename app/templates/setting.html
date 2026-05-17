@@ -35,43 +35,49 @@
             </div>
         </div>
 
-        <div class="settings-card coming-soon">
-            <span class="section-tag">coming soon</span>
-            <h2>Notifications</h2>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="study_reminder" name="study_reminder" disabled>
-                <label for="study_reminder">Study reminder</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="daily_goal" name="daily_goal" disabled>
-                <label for="daily_goal">Daily goal nudges</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="friend_activities" name="friend_activities" disabled>
-                <label for="friend_activities">Friend activity</label>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="new_study_set_updates" name="new_study_set_updates" disabled>
-                <label for="new_study_set_updates">New study set updates</label>
-            </div>
-        </div>
-
-        <div class="settings-card coming-soon">
-            <span class="section-tag">coming soon</span>
-            <h2>Language</h2>
+        <div class="settings-card">
+            <span class="section-tag">customise</span>
+            <h2>Appearance</h2>
 
             <div class="input-group">
-                <label for="language">Preferred language</label>
-                <select id="language" name="language" disabled>
-                    <option value="english">English</option>
-                    <option value="vietnamese">Vietnamese</option>
-                    <option value="french">French</option>
-                    <option value="spanish">Spanish</option>
-                </select>
+                <label>Theme colour</label>
+                <p class="setting-description">
+                    Choose the colour used for buttons, highlights, and labels.
+                </p>
+
+                <div class="theme-options">
+                    <button class="theme-choice theme-yellow"
+                            data-theme="yellow"
+                            type="button"
+                            aria-label="Yellow theme">
+                    </button>
+
+                    <button class="theme-choice theme-blue"
+                            data-theme="blue"
+                            type="button"
+                            aria-label="Blue theme">
+                    </button>
+
+                    <button class="theme-choice theme-pink"
+                            data-theme="pink"
+                            type="button"
+                            aria-label="Pink theme">
+                    </button>
+
+                    <button class="theme-choice theme-green"
+                            data-theme="green"
+                            type="button"
+                            aria-label="Green theme">
+                    </button>
+
+                    <button class="theme-choice theme-purple"
+                            data-theme="purple"
+                            type="button"
+                            aria-label="Purple theme">
+                    </button>
+                </div>
+
+                <p id="theme-message" class="theme-message"></p>
             </div>
         </div>
 
@@ -125,8 +131,82 @@
             <a href="{{ url_for('main.profile') }}" class="cancel-button">Cancel</a>
             <button type="submit" class="save-button">Save changes</button>
         </div>
-
     </form>
+
+    <form method="POST" action="{{ url_for('main.change_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="settings-card">
+            <span class="section-tag">security</span>
+            <h2>Change Password</h2>
+
+            <p class="setting-description">
+                Update your password to keep your account secure.
+            </p>
+
+            <div class="input-group">
+                <label for="current_password">Current password</label>
+                <input type="password" id="current_password" name="current_password"
+                       placeholder="Enter current password" required>
+            </div>
+
+            <div class="input-group">
+                <label for="new_password">New password</label>
+                <input type="password" id="new_password" name="new_password"
+                       placeholder="Enter new password" required>
+            </div>
+
+            <div class="input-group">
+                <label for="confirm_password">Confirm new password</label>
+                <input type="password" id="confirm_password" name="confirm_password"
+                       placeholder="Confirm new password" required>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" class="save-button">Update password</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="settings-card coming-soon">
+        <span class="section-tag">coming soon</span>
+        <h2>Notifications</h2>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="study_reminder" name="study_reminder" disabled>
+            <label for="study_reminder">Study reminder</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="daily_goal" name="daily_goal" disabled>
+            <label for="daily_goal">Daily goal nudges</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="friend_activities" name="friend_activities" disabled>
+            <label for="friend_activities">Friend activity</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="new_study_set_updates" name="new_study_set_updates" disabled>
+            <label for="new_study_set_updates">New study set updates</label>
+        </div>
+    </div>
+
+    <div class="settings-card coming-soon">
+        <span class="section-tag">coming soon</span>
+        <h2>Language</h2>
+
+        <div class="input-group">
+            <label for="language">Preferred language</label>
+            <select id="language" name="language" disabled>
+                <option value="english">English</option>
+                <option value="vietnamese">Vietnamese</option>
+                <option value="french">French</option>
+                <option value="spanish">Spanish</option>
+            </select>
+        </div>
+    </div>
 
 </div>
 {% endblock %}

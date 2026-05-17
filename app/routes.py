@@ -124,6 +124,15 @@ def settings():
             flash("Username and email are required.", "danger")
             return render_template("setting.html"), 400
 
+        existing_user = User.query.filter(
+            ((User.username == username) | (User.email == email))
+            & (User.id != current_user.id)
+        ).first()
+
+        if existing_user:
+            flash("That username or email is already in use.", "danger")
+            return render_template("setting.html"), 400
+
         current_user.username = username
         current_user.email = email
 
@@ -132,6 +141,40 @@ def settings():
         return redirect(url_for("main.settings"))
 
     return render_template("setting.html")
+
+
+@main.route("/settings/change-password", methods=["POST"])
+@login_required
+def change_password():
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not current_password or not new_password or not confirm_password:
+        flash("Please fill in all password fields.", "danger")
+        return redirect(url_for("main.settings"))
+
+    if not current_user.check_password(current_password):
+        flash("Current password is incorrect.", "danger")
+        return redirect(url_for("main.settings"))
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", "danger")
+        return redirect(url_for("main.settings"))
+
+    if len(new_password) < 6:
+        flash("Password must be at least 6 characters long.", "danger")
+        return redirect(url_for("main.settings"))
+
+    if current_user.check_password(new_password):
+        flash("New password must be different from your current password.", "danger")
+        return redirect(url_for("main.settings"))
+
+    current_user.set_password(new_password)
+    db.session.commit()
+
+    flash("Password updated successfully.", "success")
+    return redirect(url_for("main.settings"))
 
 @main.route("/study-sets/new", methods=["GET", "POST"])
 @login_required
