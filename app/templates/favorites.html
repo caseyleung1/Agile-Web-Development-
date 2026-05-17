@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Favorites | Study Dashboard{% endblock %}
+
+{% block content %}
+<section class="profile">
+    <div class="profile-info">
+        <span class="eyebrow">saved for later ✦</span>
+        <h1>Your <span class="marker-underline">favorites</span></h1>
+        <p>Sets you've starred — public sets others have shared and your own.</p>
+    </div>
+</section>
+
+<section class="study-set-container">
+    {% if study_sets %}
+        <div class="set-list">
+            {% for s in study_sets %}
+                {% set is_mine = (s.user_id == current_user.id) %}
+                {% set target = url_for('main.study_set_detail', study_set_id=s.id)
+                                if is_mine
+                                else url_for('main.browse_public_study_set', study_set_id=s.id) %}
+                <a class="flashcard-preview" href="{{ target }}">
+                    <h3>
+                        <i class="fa-solid fa-heart" style="color:var(--accent); font-size:0.85em;" aria-hidden="true"></i>
+                        {% if s.cover_emoji is emoji %}<span class="set-emoji">{{ s.cover_emoji }}</span> {% endif %}{{ s.title }}
+                    </h3>
+                    {% if s.description %}
+                        <p>{{ s.description[:80] }}{% if s.description|length > 80 %}…{% endif %}</p>
+                    {% endif %}
+                    {% if s.tags %}
+                        <div class="tag-row">
+                            {% for t in s.tags %}<span class="tag-chip">#{{ t.name }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="set-meta">
+                        <span class="card-count">{{ s.flashcards|length }} cards</span>
+                        <span class="set-owner">
+                            {% if is_mine %}your set{% else %}by {{ s.owner.username }}{% endif %}
+                        </span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-note">
+            <h3>No favorites yet</h3>
+            <p>
+                Tap the <i class="fa-regular fa-heart" aria-hidden="true"></i> button on any public set to save it here.
+                <a href="{{ url_for('main.search_public_sets') }}" class="subtle-link">Browse the community</a>
+                to get started.
+            </p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

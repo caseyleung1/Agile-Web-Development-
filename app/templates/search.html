@@ -5,9 +5,8 @@
 {% block content %}
 <section class="profile">
     <div class="profile-info">
-        <span class="eyebrow handwritten" style="color:var(--accent);font-size:1.3rem;">poke around ✦</span>
         <h1>Find a <span class="marker-underline">study</span> set</h1>
-        <p>Browse flashcard sets shared by the community.</p>
+        <p>Browse public flashcard sets shared by other users.</p>
     </div>
 </section>
 
@@ -32,9 +31,7 @@
         <h2>
             {% if query_text or owner_text %}
                 Results
-                <span class="handwritten" style="font-size:1.1rem;color:var(--ink-soft);margin-left:0.4rem;">
-                    {{ results|length }} found
-                </span>
+                <span class="hint-handwritten" style="margin-left:0.4rem;">{{ results|length }} found</span>
             {% else %}
                 Recently shared
             {% endif %}
@@ -45,8 +42,13 @@
         <div class="set-list">
             {% for study_set in results %}
                 <a class="flashcard-preview" href="{{ url_for('main.browse_public_study_set', study_set_id=study_set.id) }}">
-                    <h3>{{ study_set.title }}</h3>
+                    <h3>{% if study_set.cover_emoji is emoji %}<span class="set-emoji">{{ study_set.cover_emoji }}</span> {% endif %}{{ study_set.title }}</h3>
                     <p>{{ study_set.description or "No description yet." }}</p>
+                    {% if study_set.tags %}
+                        <div class="tag-row">
+                            {% for t in study_set.tags %}<span class="tag-chip">#{{ t.name }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
                     <div class="set-meta">
                         <span class="card-count">{{ study_set.flashcards|length }} cards</span>
                         <span class="set-owner">by {{ study_set.owner.username }}</span>
@@ -55,9 +57,9 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="no-results" style="padding:1.4rem 1.5rem;background:var(--sticky-y);border:2px dashed var(--ink);border-radius:var(--radius);transform:rotate(-0.4deg);">
-            <h3 style="margin:0 0 0.4rem;">Nothing matched.</h3>
-            <p style="margin:0;color:var(--ink-soft);">Try a different keyword or owner filter — or clear them to see what's out there.</p>
+        <div class="empty-note">
+            <h3>No results</h3>
+            <p>Try a different keyword or owner, or clear the filters to see everything.</p>
         </div>
     {% endif %}
 </section>

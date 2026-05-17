@@ -6,24 +6,86 @@
 <section class="profile">
     <div class="profile-info">
         <a class="back-link" href="{{ url_for('main.search_public_sets') }}">← back to search</a>
-        <span class="eyebrow handwritten" style="color:var(--accent-2);font-size:1.3rem;">community pick ✦</span>
-        <h1>{{ study_set.title }}</h1>
+        <h1>{% if study_set.cover_emoji is emoji %}<span class="set-emoji-title">{{ study_set.cover_emoji }}</span> {% endif %}{{ study_set.title }}</h1>
         {% if study_set.description %}
             <p>{{ study_set.description }}</p>
         {% else %}
-            <p style="color:var(--ink-faint);font-style:italic;">No description.</p>
+            <p class="muted-italic">No description.</p>
         {% endif %}
-        <p style="margin-top:0.6rem;">
+        {% if study_set.tags %}
+            <div class="tag-row" style="margin-top:0.4rem;">
+                {% for t in study_set.tags %}<span class="tag-chip">#{{ t.name }}</span>{% endfor %}
+            </div>
+        {% endif %}
+        <p class="set-attribution">
             <span class="card-count">{{ study_set.flashcards|length }} cards</span>
-            <span class="set-owner" style="margin-left:0.5rem;">shared by {{ study_set.owner.username }}</span>
+            <span class="set-owner">shared by {{ study_set.owner.username }}</span>
         </p>
     </div>
 </section>
 
+<section class="actions-row" style="margin-bottom:1.4rem;">
+    {% if study_set.flashcards %}
+        <a href="{{ url_for('main.study_set_study', study_set_id=study_set.id) }}" class="button">
+            <i class="fa-solid fa-play"></i> Flip
+        </a>
+        <a href="{{ url_for('main.study_set_quiz', study_set_id=study_set.id) }}" class="button button-quiz">
+            <i class="fa-regular fa-circle-question"></i> Quiz
+        </a>
+        {% if study_set.flashcards|length >= 2 %}
+            <a href="{{ url_for('main.study_set_time', study_set_id=study_set.id) }}" class="button button-time">
+                <i class="fa-regular fa-clock"></i> Time
+            </a>
+        {% endif %}
+    {% endif %}
+    <form method="POST"
+          action="{{ url_for('main.toggle_favorite', study_set_id=study_set.id) }}"
+          class="inline-form fav-form"
+          data-set-id="{{ study_set.id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="fav-button {% if is_favorited %}is-favorited{% endif %}"
+                aria-pressed="{{ 'true' if is_favorited else 'false' }}"
+                aria-label="{{ 'Remove from favorites' if is_favorited else 'Add to favorites' }}">
+            <i class="{{ 'fa-solid' if is_favorited else 'fa-regular' }} fa-heart" aria-hidden="true"></i>
+            <span class="fav-label">{{ 'Favorited' if is_favorited else 'Favorite' }}</span>
+        </button>
+    </form>
+</section>
+
+<script>
+    // Optimistic heart-toggle: avoid a full page reload when JS is on.
+    document.querySelectorAll(".fav-form").forEach(form => {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector(".fav-button");
+            btn.disabled = true;
+            try {
+                const r = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "X-CSRFToken": form.querySelector("[name=csrf_token]").value,
+                    },
+                });
+                const data = await r.json();
+                const fav = !!data.favorited;
+                btn.classList.toggle("is-favorited", fav);
+                btn.setAttribute("aria-pressed", String(fav));
+                btn.setAttribute("aria-label", fav ? "Remove from favorites" : "Add to favorites");
+                btn.querySelector("i").className = (fav ? "fa-solid" : "fa-regular") + " fa-heart";
+                btn.querySelector(".fav-label").textContent = fav ? "Favorited" : "Favorite";
+            } catch (err) {
+                form.submit(); // fall back to full POST + redirect
+                return;
+            }
+            btn.disabled = false;
+        });
+    });
+</script>
+
 <section class="study-set-container">
     <div class="section-heading">
         <h2>Flashcards</h2>
-        <span class="handwritten" style="font-size:1.15rem;color:var(--ink-soft);">peek away →</span>
     </div>
 
     {% if study_set.flashcards %}
@@ -35,15 +97,17 @@
                 </div>
                 <div>
                     <span class="flashcard-label">definition</span>
-                    <p style="color:var(--ink);">{{ flashcard.answer }}</p>
+                    <p class="definition-text">{{ flashcard.answer }}</p>
                 </div>
             </article>
         {% endfor %}
     {% else %}
-        <div class="no-results" style="padding:1.4rem 1.5rem;background:var(--sticky-y);border:2px dashed var(--ink);border-radius:var(--radius);transform:rotate(-0.4deg);">
-            <h3 style="margin:0 0 0.4rem;">No flashcards in this set yet</h3>
-            <p style="margin:0;color:var(--ink-soft);">Check back later — the owner might be adding to it.</p>
+        <div class="empty-note">
+            <h3>No flashcards in this set yet</h3>
+            <p>Check back later — the owner might be adding to it.</p>
         </div>
     {% endif %}
 </section>
+
+{% include "_recent_sessions.html" %}
 {% endblock %}

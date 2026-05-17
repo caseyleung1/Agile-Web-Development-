@@ -1,73 +1,196 @@
 {% extends "base.html" %}
+
 {% block title %}Profile | Study Dashboard{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profilestyle.css') }}">
-{% endblock %}
-
 {% block content %}
-<div class="profile-wrapper">
+<div class="profile-page">
 
-    <div class="profile-header">
-        <div class="polaroid">
-            {% if current_user.profile_pic %}
-                <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" alt="Profile Picture">
+    <!-- ===== Identity card ===== -->
+    <section class="profile-identity">
+        <div class="avatar-circle" aria-hidden="true">
+            {% if current_user.avatar_emoji %}
+                <span class="avatar-glyph">{{ current_user.avatar_emoji }}</span>
             {% else %}
-                <div class="avatar-placeholder">{{ current_user.username[0].upper() }}</div>
+                <span class="avatar-initial">{{ current_user.username[0]|upper }}</span>
             {% endif %}
-            <span class="caption">{{ current_user.username }}</span>
         </div>
-        <div class="profile-info">
-            <span class="eyebrow handwritten" style="color:var(--accent);font-size:1.3rem;">welcome back ✦</span>
+        <div class="profile-identity-body">
+            <span class="eyebrow">your profile ✦</span>
             <h1>{{ current_user.username }}</h1>
-            <p class="profile-role">{{ current_user.email }}</p>
-        </div>
-    </div>
-
-    <div class="stats-row">
-        <div class="stat-card">
-            <h2>{{ total_cards }}</h2>
-            <p>Cards studied</p>
-        </div>
-        <div class="stat-card">
-            <h2>{{ streak }}<span style="font-size:1.4rem;"> days</span></h2>
-            <p>Study streak</p>
-        </div>
-        <div class="stat-card">
-            <h2>{{ achievements }}</h2>
-            <p>Achievements</p>
-        </div>
-    </div>
-
-    <div class="study-sets-section">
-        <div class="section-heading">
-            <h2>My study sets</h2>
-            <a href="{{ url_for('main.create_study_set') }}">+ new set</a>
-        </div>
-
-        {% if study_sets %}
-            <div class="set-list">
-                {% for s in study_sets %}
-                    <a class="flashcard-preview" href="{{ url_for('main.study_set_detail', study_set_id=s.id) }}">
-                        <h3>{{ s.title }}</h3>
-                        {% if s.description %}
-                            <p>{{ s.description[:80] }}{% if s.description|length > 80 %}…{% endif %}</p>
-                        {% endif %}
-                        <div class="set-meta">
-                            <span class="card-count">{{ s.flashcards|length }} terms</span>
-                            {% if s.is_public %}
-                                <span class="set-owner">public</span>
-                            {% else %}
-                                <span class="set-owner">private</span>
-                            {% endif %}
-                        </div>
-                    </a>
-                {% endfor %}
+            <p class="profile-email">{{ current_user.email }}</p>
+            <div class="profile-actions">
+                <a class="button button-secondary" href="{{ url_for('main.settings') }}">
+                    <i class="fa-solid fa-gear"></i> Account settings
+                </a>
+                <button type="button" class="button" id="open-avatar-editor">
+                    <i class="fa-regular fa-face-smile"></i> Change avatar
+                </button>
             </div>
+        </div>
+    </section>
+
+    <!-- ===== Stats ===== -->
+    <section class="profile-stats">
+        <div class="stat-card stat-mini">
+            <h2>{{ sets_count }}</h2>
+            <p>Study sets</p>
+        </div>
+        <div class="stat-card stat-mini">
+            <h2>{{ total_cards }}</h2>
+            <p>Cards written</p>
+        </div>
+        <div class="stat-card stat-mini">
+            <h2>{{ sessions_count }}</h2>
+            <p>Sessions played</p>
+        </div>
+        <div class="stat-card stat-mini">
+            <h2>{{ best_accuracy }}<span class="stat-unit">%</span></h2>
+            <p>Best accuracy</p>
+        </div>
+        <div class="stat-card stat-mini">
+            <h2>{{ current_user.streak or 0 }}</h2>
+            <p>Day streak</p>
+        </div>
+        <div class="stat-card stat-mini">
+            <h2>{{ favorites_count }}</h2>
+            <p>Favorites</p>
+        </div>
+    </section>
+
+    <!-- ===== Achievements ===== -->
+    <section class="profile-section">
+        <div class="section-heading">
+            <h2>Achievements</h2>
+            <span class="hint-handwritten">
+                {{ achievements_state|selectattr('unlocked')|list|length }} / {{ achievements_state|length }} unlocked
+            </span>
+        </div>
+        <ul class="achievement-grid">
+            {% for a in achievements_state %}
+                <li class="achievement {% if a.unlocked %}is-unlocked{% else %}is-locked{% endif %}"
+                    title="{{ a.blurb }}">
+                    <div class="achievement-icon">
+                        <i class="fa-solid {{ a.icon }}"></i>
+                    </div>
+                    <div class="achievement-body">
+                        <h3>{{ a.title }}</h3>
+                        <p>{{ a.blurb }}</p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- ===== Recent activity ===== -->
+    <section class="profile-section">
+        <div class="section-heading">
+            <h2>Recent activity</h2>
+            {% if sessions_count > recent_sessions|length %}
+                <span class="hint-handwritten">showing last {{ recent_sessions|length }}</span>
+            {% endif %}
+        </div>
+        {% if recent_sessions %}
+            <ul class="session-list">
+                {% for s in recent_sessions %}
+                    {% set pct = (s.accuracy * 100)|round(0, 'common')|int %}
+                    <li class="session-row">
+                        <span class="session-mode mode-{{ s.mode }}">
+                            {% if s.mode == 'quiz' %}
+                                <i class="fa-regular fa-circle-question"></i> Quiz
+                            {% else %}
+                                <i class="fa-regular fa-clock"></i> Time
+                            {% endif %}
+                        </span>
+                        <span class="session-score">
+                            <b>{{ s.score }}</b><span class="session-of"> / {{ s.total }}</span>
+                        </span>
+                        <span class="session-bar"><span class="session-bar-fill" style="width:{{ pct }}%;"></span></span>
+                        <span class="session-pct">{{ pct }}%</span>
+                        <span class="session-time">{{ s.finished_at|timeago }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
         {% else %}
-            <p class="no-sets">No study sets yet. <a href="{{ url_for('main.create_study_set') }}">Create your first one!</a></p>
+            <div class="empty-note">
+                <h3>Nothing played yet</h3>
+                <p>
+                    <a href="{{ url_for('main.study_sets') }}" class="subtle-link">Pick a set</a>
+                    and try Quiz or Time mode — your runs will show up here.
+                </p>
+            </div>
         {% endif %}
-    </div>
+    </section>
 
 </div>
+
+<!-- ===== Avatar editor modal ===== -->
+<div class="avatar-modal" id="avatar-modal" hidden role="dialog" aria-labelledby="avatar-modal-title" aria-modal="true">
+    <div class="avatar-modal-card">
+        <h2 id="avatar-modal-title">Pick your avatar</h2>
+        <p class="hint">Tap an emoji to set it as your profile avatar.</p>
+
+        <form method="POST" action="{{ url_for('main.update_avatar') }}" id="avatar-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="avatar_emoji" id="avatar-emoji-value"
+                   value="{{ current_user.avatar_emoji or '' }}">
+
+            <div class="avatar-modal-current">
+                <span class="avatar-circle avatar-circle-sm" aria-hidden="true">
+                    <span class="avatar-glyph" id="avatar-preview-glyph">
+                        {{ current_user.avatar_emoji or current_user.username[0]|upper }}
+                    </span>
+                </span>
+            </div>
+
+            <div class="emoji-grid">
+                {% set avatar_choices = [
+                    '😀','😎','🤓','🥳','🤖','👻','👽','🐱',
+                    '🐶','🦊','🦄','🐼','🐸','🦉','🐙','🐝',
+                    '🌸','🌻','🌈','⭐','✨','🔥','⚡','🍀',
+                    '☕','🍕','🎮','📚','🎨','🎵','🚀','💎'
+                ] %}
+                {% for e in avatar_choices %}
+                    <button type="button" class="emoji-chip avatar-pick {% if current_user.avatar_emoji == e %}is-active{% endif %}"
+                            data-emoji="{{ e }}" aria-label="{{ e }}">{{ e }}</button>
+                {% endfor %}
+                <button type="button" class="emoji-chip emoji-clear avatar-pick"
+                        data-emoji="" aria-label="Use my initial instead" title="Use my initial">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="avatar-modal-actions">
+                <button type="button" class="button button-secondary" id="close-avatar-editor">Cancel</button>
+                <button type="submit" class="button">Save avatar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(() => {
+    const openBtn   = document.querySelector("#open-avatar-editor");
+    const modal     = document.querySelector("#avatar-modal");
+    const closeBtn  = document.querySelector("#close-avatar-editor");
+    const picks     = document.querySelectorAll(".avatar-pick");
+    const valueIn   = document.querySelector("#avatar-emoji-value");
+    const preview   = document.querySelector("#avatar-preview-glyph");
+    const usernameInitial = {{ (current_user.username[0]|upper)|tojson }};
+
+    function open()  { modal.hidden = false; document.body.style.overflow = "hidden"; }
+    function close() { modal.hidden = true;  document.body.style.overflow = ""; }
+
+    openBtn?.addEventListener("click", open);
+    closeBtn?.addEventListener("click", close);
+    modal?.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) close(); });
+
+    picks.forEach(b => b.addEventListener("click", () => {
+        const v = b.dataset.emoji || "";
+        valueIn.value = v;
+        preview.textContent = v || usernameInitial;
+        picks.forEach(x => x.classList.toggle("is-active", x === b));
+    }));
+})();
+</script>
 {% endblock %}

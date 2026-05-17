@@ -2,13 +2,23 @@
 
 {% block title %}Create Study Set | Study Dashboard{% endblock %}
 
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"
+        integrity="sha384-Yc/0KE+Mw3vCl12Vg6cYBPtkRDDg/4z7iZN/qcwUv9Tg2ZmHa6h25CWuVj9KvGOZ"
+        crossorigin="anonymous" defer></script>
+{% endblock %}
+
 {% block content %}
+<div id="autosave-banner" class="autosave-banner" hidden role="status">
+    <span><i class="fa-solid fa-bookmark"></i> Restored your draft from last time.</span>
+    <button type="button" id="autosave-discard" class="autosave-discard">discard draft</button>
+</div>
+
 <section class="profile">
     <div class="profile-info">
         <a href="{{ url_for('main.index') }}" class="back-link">← back to dashboard</a>
-        <span class="eyebrow handwritten" style="color:var(--accent);font-size:1.3rem;">brand new ✦</span>
-        <h1>Make a <span class="marker-underline">study set</span></h1>
-        <p>Build your own custom flashcard set, one card at a time.</p>
+        <h1>Create a <span class="marker-underline">study set</span></h1>
+        <p>Give it a title and add as many cards as you like.</p>
     </div>
 </section>
 
@@ -23,94 +33,563 @@
 {% endwith %}
 
 <section class="create-set-wrapper">
-    <form method="POST" action="{{ url_for('main.create_study_set') }}">
+    <form method="POST" action="{{ url_for('main.create_study_set') }}" id="create-set-form"
+          enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="input_mode" id="input-mode" value="form">
 
         <div class="card-section">
             <h3>The basics</h3>
+
+            <label class="emoji-label">Cover emoji <span class="hint-handwritten">(optional)</span></label>
+            <div class="emoji-picker-v2">
+                <div class="emoji-current" id="emoji-current" aria-live="polite">
+                    <span class="emoji-current-glyph" id="emoji-current-glyph">📘</span>
+                </div>
+                <div class="emoji-grid" role="group" aria-label="Pick a cover emoji">
+                    {% set emoji_choices = ['📘','🧠','🧪','🌍','🔢','🎨','🎵','💻','📚','✏️','🧬','🗺️','⚽','🍎','🎬','⚙️','🚀','💡','🔬','🎯'] %}
+                    {% for e in emoji_choices %}
+                        <button type="button" class="emoji-chip" data-emoji="{{ e }}" aria-label="{{ e }}">{{ e }}</button>
+                    {% endfor %}
+                    <button type="button" class="emoji-chip emoji-clear" data-emoji="" aria-label="No emoji" title="No emoji">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="cover_emoji" name="cover_emoji" value="📘">
+            </div>
+
             <label for="title">Set title</label>
-            <input type="text" id="title" name="title" placeholder="e.g. Biology 101" required>
+            <input type="text" id="title" name="title" placeholder="e.g. Biology 101"
+                   maxlength="120" required>
 
             <label for="description">Description</label>
-            <textarea id="description" name="description" placeholder="What's this set about?" rows="3"></textarea>
+            <textarea id="description" name="description"
+                      placeholder="What's this set about?"
+                      maxlength="500" rows="3" class="autogrow"></textarea>
+
+            <label for="tags">Tags <span class="hint-handwritten">(comma-separated, optional)</span></label>
+            <input type="text" id="tags" name="tags"
+                   placeholder="python, exam-prep, year-2"
+                   autocomplete="off">
+            <div class="tag-preview" id="tag-preview" aria-live="polite"></div>
         </div>
 
-        <div class="card-section ai-bg" style="position:relative;">
-            <span class="section-tag" style="position:absolute;top:-0.6rem;right:1.2rem;padding:0.15rem 0.7rem;background:var(--sticky-p);border:2px solid var(--ink);border-radius:999px;font-family:'Caveat',cursive;font-size:1rem;font-weight:700;color:var(--ink);transform:rotate(4deg);">coming soon</span>
-            <div class="ai-header">
-                <span class="icon">AI</span>
-                <h3>AI Flashcard Generator</h3>
+        <div class="card-section mode-section">
+            <div class="mode-tabs" role="tablist" aria-label="How to add cards">
+                <button type="button" class="mode-tab is-active" data-mode="form" role="tab" aria-selected="true">
+                    <i class="fa-regular fa-keyboard"></i> One by one
+                </button>
+                <button type="button" class="mode-tab" data-mode="paste" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-paste"></i> Paste a list
+                </button>
+                <button type="button" class="mode-tab" data-mode="upload" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-file-csv"></i> Upload CSV
+                </button>
             </div>
-            <textarea name="ai-input" placeholder="Paste your notes — we'll do the rest." rows="4" disabled></textarea>
-            <p class="hint">e.g. paste a paragraph from your textbook</p>
-            <button type="button" class="btn-ai" disabled>Generate flashcards</button>
         </div>
 
-        <div id="questions-list">
-            <div class="card-section question-block">
-                <h3>
-                    <span class="handwritten" style="color:var(--accent);font-size:1.4rem;">card</span>
-                    <span style="font-family:'Fraunces',serif;">1</span>
-                </h3>
-
-                <label for="term-1">Term</label>
-                <input type="text" id="term-1" name="term" placeholder="The word, concept, or question" required>
-
-                <label for="definition-1">Definition</label>
-                <input type="text" id="definition-1" name="definition" placeholder="What it means / the answer" required>
-
-                <p style="margin-top:1rem;color:var(--ink-soft);font-weight:700;">
-                    Multiple choice options
-                    <span class="handwritten" style="color:var(--ink-faint);font-weight:400;font-size:1rem;">(optional, for quiz mode)</span>
+        <div class="mode-pane" data-mode-pane="paste" hidden>
+            <div class="card-section">
+                <h3>Paste your cards</h3>
+                <p class="hint">
+                    One card per line. Tab, comma, dash, and pipe separators are detected automatically.
+                    Works great with copy-paste from Quizlet, a Google Sheet, or a Word table.
                 </p>
-                <div class="options-grid">
-                    <input type="text" name="option1" placeholder="Option 1">
-                    <input type="text" name="option2" placeholder="Option 2">
-                    <input type="text" name="option3" placeholder="Option 3">
+
+                <input type="hidden" name="bulk_delimiter" id="bulk-delimiter" value="tab">
+
+                <textarea id="bulk-text" name="bulk_text" rows="9" class="bulk-textarea"
+                          placeholder="HTTP&#9;HyperText Transfer Protocol&#10;CORS&#9;Cross-Origin Resource Sharing&#10;DOM&#9;Document Object Model"></textarea>
+
+                <div class="bulk-preview" id="bulk-preview" aria-live="polite">
+                    <span class="bulk-count">0 cards detected</span>
+                    <ul class="bulk-preview-list" id="bulk-preview-list"></ul>
                 </div>
             </div>
         </div>
 
+        <div class="mode-pane" data-mode-pane="upload" hidden>
+            <div class="card-section">
+                <h3>Upload a .csv / .tsv file</h3>
+                <p class="hint">
+                    Two columns: term, definition. Separator is detected from the file type
+                    (.csv, .tsv) or from the content. Headers are skipped automatically.
+                </p>
+
+                <div class="file-drop">
+                    <input type="file" id="bulk-file" name="bulk_file" accept=".csv,.tsv,.txt">
+                    <label for="bulk-file" class="file-drop-label">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                        <span id="file-name">Choose a file…</span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mode-pane" data-mode-pane="form">
+        <div id="cards-list">
+            <!-- card template injected by JS; one card rendered server-side for no-JS users -->
+            <div class="card-section question-block" data-card>
+                <div class="card-block-head">
+                    <button type="button" class="card-drag" aria-label="Drag to reorder" title="Drag to reorder">
+                        <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+                    </button>
+                    <h3>
+                        <span class="handwritten card-label">card</span>
+                        <span class="card-num">1</span>
+                    </h3>
+                    <button type="button" class="card-remove" aria-label="Remove this card">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i> Remove
+                    </button>
+                </div>
+
+                <div class="field-with-count">
+                    <label>Term</label>
+                    <span class="char-count" data-max="200">0 / 200</span>
+                </div>
+                <input type="text" name="term" placeholder="The word, concept, or question"
+                       maxlength="200" required>
+                <div class="dup-warning" hidden>
+                    <i class="fa-regular fa-circle-exclamation"></i>
+                    Another card in this set uses the same term.
+                </div>
+
+                <div class="field-with-count">
+                    <label>Definition</label>
+                    <span class="char-count" data-max="500">0 / 500</span>
+                </div>
+                <textarea name="definition" placeholder="What it means / the answer"
+                          maxlength="500" rows="2" class="autogrow" required></textarea>
+            </div>
+        </div>
+
         <div class="form-footer">
-            <button type="button" id="add-question" class="button button-ghost">
+            <button type="button" id="add-card" class="button button-ghost">
                 <i class="fa-solid fa-plus"></i> Add another card
             </button>
             <button type="submit" class="button">Create study set</button>
         </div>
+        </div><!-- /mode-pane form -->
     </form>
 </section>
 
 <script>
-    const questionsList = document.querySelector("#questions-list");
-    const addQuestionButton = document.querySelector("#add-question");
+(() => {
+    const cardsList = document.querySelector("#cards-list");
+    const addCardBtn = document.querySelector("#add-card");
 
-    addQuestionButton.addEventListener("click", () => {
-        const questionNumber = questionsList.children.length + 1;
-        const questionBlock = document.createElement("div");
-        questionBlock.className = "card-section question-block";
-        questionBlock.innerHTML = `
-            <h3>
-                <span class="handwritten" style="color:var(--accent);font-size:1.4rem;">card</span>
-                <span style="font-family:'Fraunces',serif;">${questionNumber}</span>
-            </h3>
-
-            <label for="term-${questionNumber}">Term</label>
-            <input type="text" id="term-${questionNumber}" name="term" placeholder="The word, concept, or question" required>
-
-            <label for="definition-${questionNumber}">Definition</label>
-            <input type="text" id="definition-${questionNumber}" name="definition" placeholder="What it means / the answer" required>
-
-            <p style="margin-top:1rem;color:var(--ink-soft);font-weight:700;">
-                Multiple choice options
-                <span class="handwritten" style="color:var(--ink-faint);font-weight:400;font-size:1rem;">(optional, for quiz mode)</span>
-            </p>
-            <div class="options-grid">
-                <input type="text" name="option1" placeholder="Option 1">
-                <input type="text" name="option2" placeholder="Option 2">
-                <input type="text" name="option3" placeholder="Option 3">
+    function buildCard() {
+        const card = document.createElement("div");
+        card.className = "card-section question-block";
+        card.dataset.card = "";
+        card.innerHTML = `
+            <div class="card-block-head">
+                <button type="button" class="card-drag" aria-label="Drag to reorder" title="Drag to reorder">
+                    <i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>
+                </button>
+                <h3>
+                    <span class="handwritten card-label">card</span>
+                    <span class="card-num"></span>
+                </h3>
+                <button type="button" class="card-remove" aria-label="Remove this card">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i> Remove
+                </button>
             </div>
+
+            <div class="field-with-count">
+                <label>Term</label>
+                <span class="char-count" data-max="200">0 / 200</span>
+            </div>
+            <input type="text" name="term" placeholder="The word, concept, or question"
+                   maxlength="200" required>
+            <div class="dup-warning" hidden>
+                <i class="fa-regular fa-circle-exclamation"></i>
+                Another card in this set uses the same term.
+            </div>
+
+            <div class="field-with-count">
+                <label>Definition</label>
+                <span class="char-count" data-max="500">0 / 500</span>
+            </div>
+            <textarea name="definition" placeholder="What it means / the answer"
+                      maxlength="500" rows="2" class="autogrow" required></textarea>
         `;
-        questionsList.appendChild(questionBlock);
+        return card;
+    }
+
+    function renumber() {
+        const cards = cardsList.querySelectorAll("[data-card]");
+        cards.forEach((c, i) => {
+            c.querySelector(".card-num").textContent = i + 1;
+            // Only allow remove when more than one card exists
+            const removeBtn = c.querySelector(".card-remove");
+            removeBtn.style.display = cards.length === 1 ? "none" : "";
+        });
+    }
+
+    // --- Auto-grow textareas ---
+    function autogrow(el) {
+        el.style.height = "auto";
+        el.style.height = (el.scrollHeight + 2) + "px";
+    }
+
+    // --- Char counter behaviour (visible on focus, updated on input) ---
+    function wireCharCount(field) {
+        const wrap = field.previousElementSibling;
+        if (!wrap || !wrap.classList.contains("field-with-count")) return;
+        const counter = wrap.querySelector(".char-count");
+        if (!counter) return;
+        const max = Number(counter.dataset.max || field.maxLength || 0);
+
+        const update = () => {
+            const n = field.value.length;
+            counter.textContent = `${n} / ${max}`;
+            counter.classList.toggle("near-limit", max > 0 && n >= max * 0.9);
+        };
+        field.addEventListener("input", update);
+        field.addEventListener("focus", () => counter.classList.add("visible"));
+        field.addEventListener("blur", () => counter.classList.remove("visible"));
+        update();
+    }
+
+    function wireCard(card) {
+        card.querySelectorAll(".autogrow").forEach(t => {
+            autogrow(t);
+            t.addEventListener("input", () => { autogrow(t); scheduleSave(); });
+        });
+        card.querySelectorAll("input[name=term], textarea[name=definition]")
+            .forEach(wireCharCount);
+
+        // Duplicate detection on the term field
+        const termInput = card.querySelector("input[name=term]");
+        if (termInput) {
+            termInput.addEventListener("input", () => {
+                refreshDuplicates();
+                scheduleSave();
+            });
+        }
+        const removeBtn = card.querySelector(".card-remove");
+        if (removeBtn) {
+            removeBtn.addEventListener("click", () => {
+                if (cardsList.querySelectorAll("[data-card]").length <= 1) return;
+                card.remove();
+                renumber();
+                refreshDuplicates();
+                scheduleSave();
+            });
+        }
+    }
+
+    // ---------- Duplicate term detection ----------
+    function refreshDuplicates() {
+        const counts = {};
+        const cards = cardsList.querySelectorAll("[data-card]");
+        cards.forEach(c => {
+            const t = (c.querySelector("input[name=term]")?.value || "").trim().toLowerCase();
+            if (!t) return;
+            counts[t] = (counts[t] || 0) + 1;
+        });
+        cards.forEach(c => {
+            const t = (c.querySelector("input[name=term]")?.value || "").trim().toLowerCase();
+            const warn = c.querySelector(".dup-warning");
+            if (!warn) return;
+            warn.hidden = !(t && counts[t] > 1);
+        });
+    }
+
+    // Wire up the initial server-rendered card + the basics description
+    cardsList.querySelectorAll("[data-card]").forEach(wireCard);
+    const desc = document.querySelector("#description");
+    if (desc) {
+        autogrow(desc);
+        desc.addEventListener("input", () => autogrow(desc));
+    }
+    renumber();
+
+    addCardBtn.addEventListener("click", () => {
+        const card = buildCard();
+        cardsList.appendChild(card);
+        renumber();
+        wireCard(card);
+        card.querySelector("input[name=term]").focus();
     });
+
+    // ---------- Mode tabs (one-by-one / paste / upload) ----------
+    const form = document.querySelector("#create-set-form");
+    const inputModeField = document.querySelector("#input-mode");
+    const tabs = document.querySelectorAll(".mode-tab");
+    const panes = document.querySelectorAll(".mode-pane");
+
+    function activateMode(mode) {
+        inputModeField.value = mode;
+        tabs.forEach(t => {
+            const active = t.dataset.mode === mode;
+            t.classList.toggle("is-active", active);
+            t.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panes.forEach(p => {
+            p.hidden = p.dataset.modePane !== mode;
+        });
+    }
+    tabs.forEach(t => t.addEventListener("click", () => activateMode(t.dataset.mode)));
+
+    // ---------- Live preview for paste mode ----------
+    const DELIMS = { tab: "\t", comma: ",", dash: "-", pipe: "|" };
+    const bulkText = document.querySelector("#bulk-text");
+    const bulkDelim = document.querySelector("#bulk-delimiter");
+    const previewList = document.querySelector("#bulk-preview-list");
+    const previewCount = document.querySelector(".bulk-count");
+
+    function parsePairs(text, delimKey) {
+        const delim = DELIMS[delimKey] ?? "\t";
+        const out = [];
+        for (const raw of (text || "").split(/\r?\n/)) {
+            const line = raw.trim();
+            if (!line || !line.includes(delim)) continue;
+            const idx = line.indexOf(delim);
+            const term = line.slice(0, idx).trim().replace(/^"|"$/g, "").trim();
+            const def  = line.slice(idx + delim.length).trim().replace(/^"|"$/g, "").trim();
+            if (term && def) out.push({ term, def });
+        }
+        return out;
+    }
+
+    function detectDelimiter(text) {
+        const keys = ["tab", "comma", "pipe", "dash"];
+        let best = "tab";
+        let bestCount = 0;
+        for (const key of keys) {
+            const count = parsePairs(text, key).length;
+            if (count > bestCount) {
+                bestCount = count;
+                best = key;
+            }
+        }
+        return best;
+    }
+
+    function refreshPreview() {
+        if (!bulkText) return;
+        const delimKey = detectDelimiter(bulkText.value);
+        if (bulkDelim) bulkDelim.value = delimKey;
+        const pairs = parsePairs(bulkText.value, delimKey);
+        previewCount.textContent = `${pairs.length} card${pairs.length === 1 ? "" : "s"} detected`;
+        previewList.innerHTML = "";
+        pairs.slice(0, 5).forEach(p => {
+            const li = document.createElement("li");
+            li.innerHTML = `<b></b><span></span>`;
+            li.querySelector("b").textContent = p.term;
+            li.querySelector("span").textContent = p.def;
+            previewList.appendChild(li);
+        });
+        if (pairs.length > 5) {
+            const li = document.createElement("li");
+            li.className = "bulk-preview-more";
+            li.textContent = `+ ${pairs.length - 5} more`;
+            previewList.appendChild(li);
+        }
+    }
+    bulkText?.addEventListener("input", refreshPreview);
+    refreshPreview();
+
+    // ---------- File upload: echo filename ----------
+    const fileInput = document.querySelector("#bulk-file");
+    const fileLabel = document.querySelector("#file-name");
+
+    fileInput?.addEventListener("change", () => {
+        const f = fileInput.files?.[0];
+        fileLabel.textContent = f ? f.name : "Choose a file…";
+    });
+
+    // ---------- Disable inactive-pane fields on submit so they don't get sent ----------
+    form.addEventListener("submit", () => {
+        if (inputModeField.value === "paste" && bulkText && bulkDelim) {
+            bulkDelim.value = detectDelimiter(bulkText.value);
+        }
+        const active = inputModeField.value;
+        panes.forEach(p => {
+            if (p.dataset.modePane === active) return;
+            p.querySelectorAll("input, textarea, select").forEach(el => { el.disabled = true; });
+        });
+        // Clear the autosaved draft once the form is on its way.
+        try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+    });
+
+    // Hook paste/title/desc/emoji/tags into autosave too
+    bulkText?.addEventListener("input", scheduleSave);
+    document.querySelector("#title")?.addEventListener("input", scheduleSave);
+    document.querySelector("#description")?.addEventListener("input", scheduleSave);
+    tabs.forEach(t => t.addEventListener("click", () => scheduleSave()));
+
+    // ---------- Emoji picker (button-only, no freetext) ----------
+    const emojiInput = document.querySelector("#cover_emoji");
+    const emojiCurrent = document.querySelector("#emoji-current");
+    const emojiCurrentGlyph = document.querySelector("#emoji-current-glyph");
+    const emojiChips = document.querySelectorAll(".emoji-chip");
+
+    function setEmoji(value) {
+        if (!emojiInput) return;
+        const v = sanitizeEmoji(value);
+        emojiInput.value = v;
+        if (emojiCurrentGlyph) emojiCurrentGlyph.textContent = v || "—";
+        if (emojiCurrent) emojiCurrent.classList.toggle("is-empty", !v);
+        emojiChips.forEach(c => {
+            c.classList.toggle("is-active", (c.dataset.emoji || "") === v);
+        });
+    }
+
+    // Only accept actual emoji-looking strings: no letters / digits / whitespace
+    function sanitizeEmoji(s) {
+        if (!s) return "";
+        const t = String(s).trim();
+        if (!t) return "";
+        if (/[a-zA-Z0-9\s]/.test(t)) return "";
+        return t.slice(0, 8);
+    }
+
+    emojiChips.forEach(btn => {
+        btn.addEventListener("click", () => {
+            setEmoji(btn.dataset.emoji || "");
+            scheduleSave();
+        });
+    });
+    setEmoji(emojiInput?.value || "📘");
+
+    // ---------- Tag chip preview ----------
+    const tagsInput = document.querySelector("#tags");
+    const tagPreview = document.querySelector("#tag-preview");
+
+    function normalizeTag(raw) {
+        if (!raw) return "";
+        let s = raw.trim().toLowerCase().replace(/\s+/g, "-");
+        s = s.replace(/[^a-z0-9-]+/g, "").replace(/^-+|-+$/g, "");
+        return s.slice(0, 40);
+    }
+
+    function refreshTagChips() {
+        if (!tagsInput || !tagPreview) return;
+        const seen = new Set();
+        const tags = [];
+        tagsInput.value.split(/[,\s]+/).forEach(raw => {
+            const t = normalizeTag(raw);
+            if (!t || seen.has(t)) return;
+            seen.add(t);
+            tags.push(t);
+        });
+        tagPreview.innerHTML = "";
+        tags.forEach(t => {
+            const chip = document.createElement("span");
+            chip.className = "tag-chip";
+            chip.textContent = "#" + t;
+            tagPreview.appendChild(chip);
+        });
+    }
+    tagsInput?.addEventListener("input", () => { refreshTagChips(); scheduleSave(); });
+    refreshTagChips();
+
+    // ---------- Sortable: drag handles to reorder cards ----------
+    function initSortable() {
+        if (typeof Sortable === "undefined") return;
+        new Sortable(cardsList, {
+            handle: ".card-drag",
+            animation: 150,
+            ghostClass: "card-drag-ghost",
+            chosenClass: "card-drag-chosen",
+            onEnd: () => { renumber(); scheduleSave(); },
+        });
+    }
+    // SortableJS is loaded with defer — wait for it
+    if (document.readyState === "complete") initSortable();
+    else window.addEventListener("load", initSortable);
+
+    // ---------- LocalStorage autosave + restore ----------
+    const DRAFT_KEY = "studyDashboard.createSet.draft.v1";
+    let saveTimer = null;
+
+    function scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDraft, 400);
+    }
+
+    function snapshot() {
+        const cards = Array.from(cardsList.querySelectorAll("[data-card]")).map(c => ({
+            term: c.querySelector("input[name=term]")?.value || "",
+            def:  c.querySelector("textarea[name=definition]")?.value || "",
+        })).filter(p => p.term || p.def);
+        return {
+            title: document.querySelector("#title")?.value || "",
+            description: document.querySelector("#description")?.value || "",
+            emoji: emojiInput?.value || "",
+            tags: tagsInput?.value || "",
+            mode: inputModeField.value,
+            bulkText: bulkText?.value || "",
+            bulkDelim: bulkDelim?.value || "tab",
+            cards: cards,
+            savedAt: Date.now(),
+        };
+    }
+
+    function isEmpty(draft) {
+        return !(draft.title || draft.description || draft.tags || draft.bulkText ||
+                 (draft.cards && draft.cards.length));
+    }
+
+    function saveDraft() {
+        try {
+            const draft = snapshot();
+            if (isEmpty(draft)) {
+                localStorage.removeItem(DRAFT_KEY);
+                return;
+            }
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch (_) { /* quota / privacy mode — ignore */ }
+    }
+
+    function restoreDraft() {
+        let raw;
+        try { raw = localStorage.getItem(DRAFT_KEY); } catch (_) { return; }
+        if (!raw) return;
+        let draft;
+        try { draft = JSON.parse(raw); } catch (_) { return; }
+        if (!draft || isEmpty(draft)) return;
+
+        document.querySelector("#title").value = draft.title || "";
+        const descEl = document.querySelector("#description");
+        if (descEl) { descEl.value = draft.description || ""; autogrow(descEl); }
+        if (emojiInput) setEmoji(draft.emoji || "");
+        if (tagsInput) { tagsInput.value = draft.tags || ""; refreshTagChips(); }
+        if (bulkText) bulkText.value = draft.bulkText || "";
+        if (bulkDelim && draft.bulkDelim) bulkDelim.value = draft.bulkDelim;
+        if (draft.mode) activateMode(draft.mode);
+
+        // Rebuild cards (replacing the initial blank one if there's >=1 draft card)
+        if (Array.isArray(draft.cards) && draft.cards.length) {
+            cardsList.innerHTML = "";
+            draft.cards.forEach(pair => {
+                const c = buildCard();
+                cardsList.appendChild(c);
+                c.querySelector("input[name=term]").value = pair.term || "";
+                c.querySelector("textarea[name=definition]").value = pair.def || "";
+                wireCard(c);
+            });
+            renumber();
+            refreshDuplicates();
+            cardsList.querySelectorAll(".autogrow").forEach(autogrow);
+        }
+
+        refreshPreview();
+
+        const banner = document.querySelector("#autosave-banner");
+        if (banner) banner.hidden = false;
+    }
+
+    document.querySelector("#autosave-discard")?.addEventListener("click", () => {
+        try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+        location.reload();
+    });
+
+    restoreDraft();
+})();
 </script>
 {% endblock %}

@@ -20,6 +20,44 @@
 
     .quiz-meta .score { color: var(--accent-2); }
 
+    .quiz-mode-badge {
+        display: inline-block;
+        margin-left: 0.5rem;
+        padding: 0.05rem 0.55rem;
+        background: var(--sticky-p);
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+        font-family: "Caveat", cursive;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        transform: rotate(-2deg);
+    }
+
+    .kbd-hints {
+        margin-bottom: 0.9rem;
+        font-family: "Nunito", sans-serif;
+        font-size: 0.82rem;
+        color: var(--ink-faint);
+        text-align: right;
+    }
+
+    .kbd {
+        display: inline-block;
+        min-width: 1.4em;
+        padding: 0.05rem 0.4rem;
+        background: var(--paper-deep);
+        border: 1.5px solid var(--ink);
+        border-bottom-width: 2.5px;
+        border-radius: 5px;
+        font-family: "Fraunces", serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.2;
+        text-align: center;
+    }
+
     .quiz-options {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -129,6 +167,12 @@
         flex-wrap: wrap;
         margin-top: 1.4rem;
     }
+
+    .quiz-results .button-review {
+        background: var(--sticky-p);
+        color: var(--ink);
+    }
+    .quiz-results .button-review:hover { background: #f5b9c8; }
 </style>
 {% endblock %}
 
@@ -137,8 +181,7 @@
 
     <section class="profile">
         <div class="profile-info">
-            <a class="back-link" href="{{ url_for('main.study_set_detail', study_set_id=study_set.id) }}">← back to study set</a>
-            <span class="eyebrow handwritten" style="color:var(--accent-2);font-size:1.3rem;">quiz mode ✦</span>
+            <a class="back-link" href="{{ back_url or url_for('main.study_set_detail', study_set_id=study_set.id) }}">← back to study set</a>
             <h1>{{ study_set.title }}</h1>
             <p>Pick the correct definition for each term.</p>
         </div>
@@ -146,9 +189,17 @@
 
     <div id="quiz-stage">
         <div class="quiz-meta">
-            <span>card <span id="q-num">1</span> of <span id="q-total">{{ study_set.flashcards|length }}</span></span>
+            <span>
+                card <span id="q-num">1</span> of <span id="q-total">{{ study_set.flashcards|length }}</span>
+                <span id="q-mode-badge" class="quiz-mode-badge" style="display:none;">review run</span>
+            </span>
             <span class="score">score: <span id="q-score">0</span></span>
         </div>
+
+        <p class="kbd-hints">
+            <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span>
+            choose · <span class="kbd">↵</span> next
+        </p>
 
         <article class="review-card">
             <span class="flashcard-label">term</span>
@@ -167,15 +218,18 @@
     </div>
 
     <div id="quiz-results" class="quiz-results" style="display:none;">
-        <span class="handwritten" style="font-size:1.4rem;color:var(--accent);">all done ✦</span>
+        <span class="handwritten" style="font-size:1.4rem;color:var(--accent);">all done</span>
         <div class="big-score"><span id="r-score">0</span> / <span id="r-total">0</span></div>
         <h2 id="r-message">Nice work.</h2>
         <p id="r-percent" style="color:var(--ink-soft);"></p>
         <div class="actions">
+            <button type="button" class="button button-review" id="r-review" style="display:none;">
+                <i class="fa-solid fa-bullseye"></i> Review wrong (<span id="r-wrong-count">0</span>)
+            </button>
             <button type="button" class="button" id="r-retry">
                 <i class="fa-solid fa-rotate-right"></i> Try again
             </button>
-            <a class="button button-secondary" href="{{ url_for('main.study_set_detail', study_set_id=study_set.id) }}">
+            <a class="button button-secondary" href="{{ back_url or url_for('main.study_set_detail', study_set_id=study_set.id) }}">
                 Back to set
             </a>
         </div>
@@ -200,29 +254,40 @@
     }
 
     function buildOptions(correct) {
-        const distractors = shuffle(allAnswers.filter(a => a !== correct)).slice(0, 3);
+        const pool = allAnswers.filter(a => a !== correct);
+        const distractors = shuffle(pool).slice(0, 3);
         return shuffle([correct, ...distractors]);
     }
 
     const stage = document.querySelector("#quiz-stage");
     const results = document.querySelector("#quiz-results");
     const qNum = document.querySelector("#q-num");
+    const qTotal = document.querySelector("#q-total");
     const qScore = document.querySelector("#q-score");
     const qTerm = document.querySelector("#q-term");
     const qOptions = document.querySelector("#q-options");
     const qFeedback = document.querySelector("#q-feedback");
     const qNext = document.querySelector("#q-next");
+    const qModeBadge = document.querySelector("#q-mode-badge");
+    const rReview = document.querySelector("#r-review");
+    const rWrongCount = document.querySelector("#r-wrong-count");
     const letters = ["A", "B", "C", "D"];
 
     let order = [];
     let index = 0;
     let score = 0;
     let answered = false;
+    let wrongCards = [];
+    let isReviewRun = false;
 
-    function start() {
-        order = shuffle(cards);
+    function start(reviewCards = null) {
+        isReviewRun = Array.isArray(reviewCards) && reviewCards.length > 0;
+        order = shuffle(isReviewRun ? reviewCards : cards);
         index = 0;
         score = 0;
+        wrongCards = [];
+        qTotal.textContent = order.length;
+        qModeBadge.style.display = isReviewRun ? "" : "none";
         stage.style.display = "";
         results.style.display = "none";
         renderQuestion();
@@ -244,6 +309,7 @@
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "quiz-option";
+            btn.dataset.value = opt;
             btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${escapeHtml(opt)}</span>`;
             btn.addEventListener("click", () => choose(btn, opt, card.answer));
             qOptions.appendChild(btn);
@@ -253,51 +319,110 @@
     function choose(btn, picked, correct) {
         if (answered) return;
         answered = true;
+        const card = order[index];
         const buttons = qOptions.querySelectorAll(".quiz-option");
         buttons.forEach(b => {
             b.disabled = true;
-            const text = b.textContent.trim();
-            if (text === correct) b.classList.add("correct");
+            if (b.dataset.value === correct) b.classList.add("correct");
         });
         if (picked === correct) {
             score += 1;
             qScore.textContent = score;
-            qFeedback.textContent = "Nailed it.";
+            qFeedback.textContent = "Correct.";
             qFeedback.className = "quiz-feedback right";
         } else {
             btn.classList.add("wrong");
-            qFeedback.textContent = `Not quite — the answer was: ${correct}`;
+            qFeedback.textContent = `The answer was: ${correct}`;
             qFeedback.className = "quiz-feedback miss";
+            wrongCards.push(card);
         }
         qNext.style.display = "";
         qNext.focus();
     }
 
-    qNext.addEventListener("click", () => {
+    function advance() {
+        if (!answered) return;
         if (index + 1 < order.length) {
             index += 1;
             renderQuestion();
         } else {
             showResults();
         }
-    });
+    }
+
+    qNext.addEventListener("click", advance);
 
     function showResults() {
         stage.style.display = "none";
         results.style.display = "";
         document.querySelector("#r-score").textContent = score;
         document.querySelector("#r-total").textContent = order.length;
-        const pct = Math.round((score / order.length) * 100);
+        const pct = order.length ? Math.round((score / order.length) * 100) : 0;
         document.querySelector("#r-percent").textContent = `${pct}% correct`;
         const msg =
-            pct === 100 ? "Perfect run." :
-            pct >= 80  ? "Strong showing." :
-            pct >= 50  ? "Solid — another go?" :
-                         "Plenty of room to grow.";
+            pct === 100 ? (isReviewRun ? "Cleaned them up." : "Perfect score.") :
+            pct >= 80   ? "Great work." :
+            pct >= 50   ? "Not bad. Try again?" :
+                          "Worth another go.";
         document.querySelector("#r-message").textContent = msg;
+
+        const missed = wrongCards.slice();
+        if (missed.length > 0) {
+            rWrongCount.textContent = missed.length;
+            rReview.style.display = "";
+            rReview.onclick = () => start(missed);
+        } else {
+            rReview.style.display = "none";
+        }
+
+        // Only record full runs — review re-runs are practice, not "real" attempts.
+        if (!isReviewRun) recordSession(score, order.length);
     }
 
-    document.querySelector("#r-retry").addEventListener("click", start);
+    function recordSession(score, total) {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+        fetch("{{ url_for('main.submit_quiz_session', study_set_id=study_set.id) }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf || "" },
+            body: JSON.stringify({ score: score, total: total }),
+        }).catch(() => { /* non-fatal — session recording is best-effort */ });
+    }
+
+    document.querySelector("#r-retry").addEventListener("click", () => start());
+
+    // ---------- Keyboard shortcuts ----------
+    document.addEventListener("keydown", (e) => {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+        if (results.style.display !== "none") return;          // results screen: no shortcuts
+        const k = e.key;
+
+        // Enter / Space → advance after an answer is locked in
+        if ((k === "Enter" || k === " ") && answered) {
+            e.preventDefault();
+            advance();
+            return;
+        }
+
+        if (answered) return;
+
+        // 1-4 or A-D → pick that option
+        let pickIndex = -1;
+        if (k >= "1" && k <= "4") {
+            pickIndex = Number(k) - 1;
+        } else if (k && k.length === 1) {
+            const upper = k.toUpperCase();
+            const li = letters.indexOf(upper);
+            if (li !== -1) pickIndex = li;
+        }
+
+        if (pickIndex !== -1) {
+            const btn = qOptions.children[pickIndex];
+            if (btn) {
+                e.preventDefault();
+                btn.click();
+            }
+        }
+    });
 
     function escapeHtml(s) {
         return String(s)

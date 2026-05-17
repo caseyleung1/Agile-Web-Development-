@@ -1,0 +1,33 @@
+{# Score-history panel used by study_set.html and browse_study_set.html.
+   Expects `recent_sessions` (list of StudySession) in context. #}
+{% if recent_sessions %}
+<section class="recent-sessions" aria-label="Your recent attempts">
+    <div class="section-heading">
+        <h2>Your recent attempts</h2>
+        <span class="hint-handwritten">{{ recent_sessions|length }} most recent</span>
+    </div>
+    <ul class="session-list">
+        {% for s in recent_sessions %}
+            {% set pct = (s.accuracy * 100)|round(0, 'common')|int %}
+            <li class="session-row">
+                <span class="session-mode mode-{{ s.mode }}">
+                    {% if s.mode == 'quiz' %}
+                        <i class="fa-regular fa-circle-question" aria-hidden="true"></i> Quiz
+                    {% else %}
+                        <i class="fa-regular fa-clock" aria-hidden="true"></i> Time
+                    {% endif %}
+                </span>
+                <span class="session-score">
+                    <b>{{ s.score }}</b>
+                    <span class="session-of">/ {{ s.total }}</span>
+                </span>
+                <span class="session-bar" aria-hidden="true">
+                    <span class="session-bar-fill" style="width: {{ pct }}%;"></span>
+                </span>
+                <span class="session-pct">{{ pct }}%</span>
+                <span class="session-time">{{ s.finished_at|timeago }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}

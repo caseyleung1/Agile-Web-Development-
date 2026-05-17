@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}My Study Sets | Study Dashboard{% endblock %}
+
+{% block content %}
+<section class="profile">
+    <div class="profile-info">
+        <h1>My <span class="marker-underline">study sets</span></h1>
+        <p>{{ total_sets }} set{{ '' if total_sets == 1 else 's' }} · {{ total_cards }} card{{ '' if total_cards == 1 else 's' }} · {{ public_count }} public</p>
+    </div>
+</section>
+
+<section class="my-sets-toolbar">
+    <div class="my-sets-toolbar-left">
+        <input type="search" id="set-filter" class="set-filter-input"
+               placeholder="Filter by title or tag…" autocomplete="off">
+        <select id="set-sort" class="set-sort-select" aria-label="Sort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="title">Title (A → Z)</option>
+            <option value="cards">Most cards</option>
+        </select>
+        <div class="set-vis-toggle" role="group" aria-label="Visibility filter">
+            <button type="button" class="vis-tab is-active" data-vis="all">All</button>
+            <button type="button" class="vis-tab" data-vis="public">Public</button>
+            <button type="button" class="vis-tab" data-vis="private">Private</button>
+        </div>
+    </div>
+    <a class="button" href="{{ url_for('main.create_study_set') }}">
+        <i class="fa-solid fa-plus"></i> New set
+    </a>
+</section>
+
+<section class="study-set-container">
+    {% if study_sets %}
+        <div class="set-list" id="set-list">
+            {% for s in study_sets %}
+                <a class="flashcard-preview set-card"
+                   href="{{ url_for('main.study_set_detail', study_set_id=s.id) }}"
+                   data-title="{{ s.title|lower }}"
+                   data-tags="{% for t in s.tags %}{{ t.name }} {% endfor %}"
+                   data-cards="{{ s.flashcards|length }}"
+                   data-id="{{ s.id }}"
+                   data-vis="{{ 'public' if s.is_public else 'private' }}">
+                    <h3>{% if s.cover_emoji is emoji %}<span class="set-emoji">{{ s.cover_emoji }}</span> {% endif %}{{ s.title }}</h3>
+                    {% if s.description %}
+                        <p>{{ s.description[:80] }}{% if s.description|length > 80 %}…{% endif %}</p>
+                    {% endif %}
+                    {% if s.tags %}
+                        <div class="tag-row">
+                            {% for t in s.tags %}<span class="tag-chip">#{{ t.name }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="set-meta">
+                        <span class="card-count">{{ s.flashcards|length }} card{{ '' if s.flashcards|length == 1 else 's' }}</span>
+                        <span class="set-owner">{{ 'public' if s.is_public else 'private' }}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+        <p id="set-filter-empty" class="empty-note" hidden>
+            <strong>No sets match that filter.</strong>
+            <span>Clear the search or try a different term.</span>
+        </p>
+    {% else %}
+        <div class="empty-note">
+            <h3>No study sets yet</h3>
+            <p>
+                <a href="{{ url_for('main.create_study_set') }}" class="subtle-link">Create your first set</a>
+                to get started.
+            </p>
+        </div>
+    {% endif %}
+</section>
+
+<script>
+(() => {
+    const filter = document.querySelector("#set-filter");
+    const sort   = document.querySelector("#set-sort");
+    const list   = document.querySelector("#set-list");
+    const empty  = document.querySelector("#set-filter-empty");
+    const visTabs = document.querySelectorAll(".vis-tab");
+    if (!list) return;
+
+    let visibility = "all";
+
+    function apply() {
+        const q = (filter?.value || "").trim().toLowerCase();
+        const cards = Array.from(list.querySelectorAll(".set-card"));
+
+        // Visibility + text filter
+        let visible = 0;
+        cards.forEach(c => {
+            const matchVis = visibility === "all" || c.dataset.vis === visibility;
+            const text = (c.dataset.title + " " + c.dataset.tags);
+            const matchText = !q || text.includes(q);
+            const show = matchVis && matchText;
+            c.style.display = show ? "" : "none";
+            if (show) visible++;
+        });
+
+        // Sort
+        const key = sort.value;
+        const sorted = cards.slice().sort((a, b) => {
+            if (key === "title") return a.dataset.title.localeCompare(b.dataset.title);
+            if (key === "cards") return Number(b.dataset.cards) - Number(a.dataset.cards);
+            const idA = Number(a.dataset.id), idB = Number(b.dataset.id);
+            return key === "oldest" ? idA - idB : idB - idA;
+        });
+        sorted.forEach(c => list.appendChild(c));
+
+        if (empty) empty.hidden = visible > 0;
+    }
+
+    filter?.addEventListener("input", apply);
+    sort?.addEventListener("change", apply);
+    visTabs.forEach(t => t.addEventListener("click", () => {
+        visTabs.forEach(x => x.classList.remove("is-active"));
+        t.classList.add("is-active");
+        visibility = t.dataset.vis;
+        apply();
+    }));
+})();
+</script>
+{% endblock %}

@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Study Dashboard{% endblock %}</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/uwa_logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/uwa_logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,10 +35,27 @@
             <span class="brand-text">CITS3403 Project <span class="marker-underline">CAVSLIT</span></span>
         </a>
 
+        {% if current_user.is_authenticated %}
+        <div class="global-search" role="search">
+            <i class="fa-solid fa-magnifying-glass global-search-icon" aria-hidden="true"></i>
+            <input type="search" id="global-search-input" class="global-search-input"
+                   placeholder="Search sets, cards, pages…"
+                   autocomplete="off" spellcheck="false"
+                   aria-label="Search the site"
+                   aria-expanded="false" aria-controls="global-search-results">
+            <kbd class="global-search-kbd" id="global-search-kbd">⌘K</kbd>
+            <div id="global-search-results" class="global-search-results" role="listbox" hidden></div>
+        </div>
+        {% endif %}
+
         <nav class="auth-actions" aria-label="Authentication">
             {% if current_user.is_authenticated %}
                 <a class="welcome" href="{{ url_for('main.profile') }}" title="View your profile">
-                    <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+                    {% if current_user.avatar_emoji %}
+                        <span class="welcome-avatar" aria-hidden="true">{{ current_user.avatar_emoji }}</span>
+                    {% else %}
+                        <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+                    {% endif %}
                     <span>Hi, <b>{{ current_user.username }}</b></span>
                 </a>
                 <a class="button button-secondary" href="{{ url_for('main.logout') }}">Log out</a>
@@ -66,6 +87,12 @@
                    href="{{ url_for('main.search_public_sets') }}" aria-label="Search">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                     <span>Search</span>
+                </a>
+
+                <a class="nav-item {% if request.endpoint == 'main.favorites' %}active{% endif %}"
+                   href="{{ url_for('main.favorites') }}" aria-label="Favorites">
+                    <i class="fa-solid fa-heart" aria-hidden="true"></i>
+                    <span>Favorites</span>
                 </a>
 
                 <a class="nav-item {% if request.endpoint == 'main.create_study_set' %}active{% endif %}"
@@ -176,5 +203,150 @@
             });
         });
     </script>
+
+    {% if current_user.is_authenticated %}
+    <script>
+    (() => {
+        const input   = document.getElementById("global-search-input");
+        const panel   = document.getElementById("global-search-results");
+        const kbdHint = document.getElementById("global-search-kbd");
+        if (!input || !panel) return;
+
+        const SEARCH_URL = {{ url_for('main.api_search')|tojson }};
+        const isMac = /Mac|iP(hone|ad)/.test(navigator.platform);
+        if (kbdHint) kbdHint.textContent = isMac ? "⌘K" : "Ctrl+K";
+
+        const TYPE_LABEL = {
+            page:   "Page",
+            set:    "Your set",
+            public: "Public",
+            tag:    "Tag",
+            card:   "Card",
+        };
+
+        let lastQuery = "";
+        let activeIndex = -1;
+        let items = [];
+        let debounceTimer = null;
+        let abortCtrl = null;
+
+        function escapeHtml(s) {
+            return String(s == null ? "" : s)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+        }
+
+        function highlight(text, q) {
+            const safe = escapeHtml(text);
+            if (!q) return safe;
+            const re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+            return safe.replace(re, "<mark>$1</mark>");
+        }
+
+        function render(data) {
+            const list = data.results || [];
+            items = list;
+            activeIndex = list.length ? 0 : -1;
+
+            if (!list.length) {
+                if (data.q && data.q.length >= 1) {
+                    panel.innerHTML = `<div class="global-search-empty">Nothing matches “${escapeHtml(data.q)}”.</div>`;
+                } else {
+                    panel.innerHTML = `<div class="global-search-empty">Type to search across pages, sets, cards and tags.</div>`;
+                }
+            } else {
+                panel.innerHTML = list.map((r, i) => `
+                    <a class="global-search-item${i === 0 ? ' is-active' : ''}"
+                       href="${escapeHtml(r.url)}"
+                       data-idx="${i}"
+                       role="option">
+                        <span class="global-search-glyph">
+                            ${r.emoji ? escapeHtml(r.emoji) : `<i class="fa-solid ${escapeHtml(r.icon || 'fa-circle')}"></i>`}
+                        </span>
+                        <span class="global-search-body">
+                            <span class="global-search-title">${highlight(r.title, data.q)}</span>
+                            <span class="global-search-sub">${escapeHtml(r.subtitle || TYPE_LABEL[r.type] || '')}</span>
+                        </span>
+                    </a>
+                `).join("");
+            }
+            show();
+        }
+
+        function show() { panel.hidden = false; input.setAttribute("aria-expanded", "true"); }
+        function hide() {
+            panel.hidden = true;
+            input.setAttribute("aria-expanded", "false");
+            activeIndex = -1;
+        }
+
+        async function runSearch(q) {
+            lastQuery = q;
+            if (!q) { hide(); return; }
+            if (abortCtrl) abortCtrl.abort();
+            abortCtrl = new AbortController();
+            try {
+                const r = await fetch(SEARCH_URL + "?q=" + encodeURIComponent(q), { signal: abortCtrl.signal });
+                if (!r.ok) return;
+                const data = await r.json();
+                if (data.q !== lastQuery) return;  // out-of-order — discard
+                render(data);
+            } catch (e) { /* abort or network — ignore */ }
+        }
+
+        input.addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            const q = input.value.trim();
+            debounceTimer = setTimeout(() => runSearch(q), 140);
+        });
+
+        input.addEventListener("focus", () => {
+            if (input.value.trim()) show();
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { input.blur(); hide(); return; }
+            if (panel.hidden || !items.length) return;
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                activeIndex = (activeIndex + 1) % items.length;
+                paintActive();
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                activeIndex = (activeIndex - 1 + items.length) % items.length;
+                paintActive();
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                const link = panel.querySelector(`.global-search-item[data-idx="${activeIndex}"]`);
+                if (link) window.location.href = link.href;
+            }
+        });
+
+        function paintActive() {
+            panel.querySelectorAll(".global-search-item").forEach(el => {
+                el.classList.toggle("is-active", Number(el.dataset.idx) === activeIndex);
+            });
+            const el = panel.querySelector(".is-active");
+            if (el) el.scrollIntoView({ block: "nearest" });
+        }
+
+        // Click outside to dismiss
+        document.addEventListener("click", (e) => {
+            if (!panel.contains(e.target) && e.target !== input) hide();
+        });
+
+        // Cmd+K / Ctrl+K from anywhere
+        document.addEventListener("keydown", (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                input.focus();
+                input.select();
+            }
+        });
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>
